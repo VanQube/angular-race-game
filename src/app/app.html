@@ -14,109 +14,13 @@
     </div>
   </header>
 
-  <section class="panel-grid">
-    <div class="panel">
-      <h2>Create a racer</h2>
-      <label class="field">
-        <span>Driver name</span>
-        <input
-          type="text"
-          [value]="newCarName()"
-          (input)="onNameInput($event)"
-          placeholder="e.g. Aurora"
-        />
-      </label>
+  <nav class="tab-nav" aria-label="Primary">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Race</a>
+    <a routerLink="/garage" routerLinkActive="active">Garage</a>
+    <a routerLink="/leaderboard" routerLinkActive="active">Leaderboard</a>
+  </nav>
 
-      <label class="field">
-        <span>Car model</span>
-        <select name="carModel" [value]="newCarModel()" (change)="onModelSelect($event)">
-          @for (model of availableCarModels(); track model.id) {
-            <option [value]="model.id">{{ model.name }} — {{ model.tag }}</option>
-          }
-        </select>
-      </label>
-
-      <label class="field">
-        <span>Car color</span>
-        <input
-          type="color"
-          [value]="newCarColor()"
-          (input)="onColorInput($event)"
-        />
-      </label>
-
-      <div class="selection-preview">
-        <span class="preview-label">Selected model</span>
-        <div class="preview-card">
-          <span class="preview-badge">{{ selectedCarModel().name }}</span>
-          <span class="preview-copy">{{ selectedCarModel().tag }}</span>
-        </div>
-      </div>
-
-      <button class="primary-btn" (click)="addCar()" [disabled]="raceInProgress()">Add racer</button>
-    </div>
-
-    <div class="panel">
-      <h2>Race controls</h2>
-      <p>Launch the field and let the fastest machine claim the podium.</p>
-      <div class="actions">
-        <button class="primary-btn" (click)="startRace()" [disabled]="raceInProgress() || cars().length === 0">
-          Start race
-        </button>
-        <button class="ghost-btn" (click)="resetRace()">Reset track</button>
-      </div>
-    </div>
-  </section>
-
-  <section class="track-panel">
-    <div class="track">
-      <div class="track-labels">
-        <span>Start line</span>
-        <span>Finish line</span>
-      </div>
-
-      <div class="track-surface">
-        @for (car of cars(); track car.id) {
-          <div class="lane">
-            <div
-              class="car"
-              [style.left.%]="car.progress"
-              [style.background]="car.color"
-              [class.racing]="car.status === 'racing'"
-              [class.finished]="car.status === 'finished'"
-            >
-              <span class="driver">{{ car.name }} · {{ car.model }}</span>
-            </div>
-
-            <div class="meter">
-              <div class="meter-fill" [style.width.%]="car.progress"></div>
-            </div>
-
-            <div class="lane-meta">
-              <span>{{ car.name }} · {{ car.model }}</span>
-              <span>{{ car.finishTimeMs ? car.finishTimeMs + 'ms' : car.status }}</span>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  </section>
-
-  @if (raceFinished()) {
-    <div class="overlay" role="dialog" aria-modal="true">
-      <div class="leaderboard-card">
-        <button class="close-btn" (click)="closeLeaderboard()">✕</button>
-        <h3>Leaderboard</h3>
-        <ol class="leaderboard">
-          @for (entry of leaderboard(); track entry.id; let index = $index) {
-            <li>
-              <span class="place">{{ index + 1 }}</span>
-              <span class="entry-name">{{ entry.name }}</span>
-              <span class="entry-time">{{ entry.finishTimeMs }}ms</span>
-            </li>
-          }
-        </ol>
-      </div>
-    </div>
-  }
+  <main class="view-shell">
+    <router-outlet></router-outlet>
+  </main>
 </div>
