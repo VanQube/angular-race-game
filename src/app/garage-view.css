@@ -1,0 +1,120 @@
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.panel {
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(5, 10, 29, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  color: #ffffff;
+}
+
+.panel p {
+  margin: 0 0 16px;
+  color: #cdd6f7;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: #eef2ff;
+}
+
+.field span {
+  font-size: 0.9rem;
+}
+
+input[type='text'],
+select {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: white;
+}
+
+select {
+  appearance: none;
+}
+
+input[type='color'] {
+  width: 100%;
+  height: 48px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: transparent;
+}
+
+.selection-preview {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.preview-label {
+  font-size: 0.9rem;
+  color: #eef2ff;
+}
+
+.preview-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(125, 249, 255, 0.08);
+  border: 1px solid rgba(125, 249, 255, 0.2);
+}
+
+.preview-badge {
+  color: #7df9ff;
+  font-weight: 700;
+}
+
+.preview-copy {
+  color: #cdd6f7;
+  font-size: 0.9rem;
+}
+
+.car-list {
+  display: grid;
+  gap: 12px;
+}
+
+.car-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.car-card__swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.car-card strong {
+  color: #ffffff;
+}
+
+.car-card p {
+  margin: 4px 0 0;
+  color: #cdd6f7;
+}

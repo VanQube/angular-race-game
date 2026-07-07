@@ -1,0 +1,54 @@
+<section class="panel-grid">
+  <div class="panel">
+    <h2>Create a racer</h2>
+    <label class="field">
+      <span>Driver name</span>
+      <input
+        type="text"
+        [value]="newCarName()"
+        (input)="onNameInput($event)"
+        placeholder="e.g. Aurora"
+      />
+    </label>
+
+    <label class="field">
+      <span>Car model</span>
+      <select name="carModel" [value]="newCarModel()" (change)="onModelSelect($event)">
+        @for (model of availableCarModels(); track model.id) {
+          <option [value]="model.id">{{ model.name }} — {{ model.tag }}</option>
+        }
+      </select>
+    </label>
+
+    <label class="field">
+      <span>Car color</span>
+      <input type="color" [value]="newCarColor()" (input)="onColorInput($event)" />
+    </label>
+
+    <div class="selection-preview">
+      <span class="preview-label">Selected model</span>
+      <div class="preview-card">
+        <span class="preview-badge">{{ selectedCarModel().name }}</span>
+        <span class="preview-copy">{{ selectedCarModel().tag }}</span>
+      </div>
+    </div>
+
+    <button class="primary-btn" (click)="addCar()" [disabled]="raceInProgress()">Add racer</button>
+  </div>
+
+  <div class="panel">
+    <h2>Garage overview</h2>
+    <p>Keep adding fresh machines to your roster and prepare them for the next run.</p>
+    <div class="car-list">
+      @for (car of cars(); track car.id) {
+        <div class="car-card">
+          <div class="car-card__swatch" [style.background]="car.color"></div>
+          <div>
+            <strong>{{ car.name }}</strong>
+            <p>{{ car.model }} · {{ car.status }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

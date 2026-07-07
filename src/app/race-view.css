@@ -1,0 +1,158 @@
+.panel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.panel,
+.track {
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(5, 10, 29, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  color: #ffffff;
+}
+
+.panel p {
+  margin: 0 0 16px;
+  color: #cdd6f7;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.highlight-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(125, 249, 255, 0.08);
+  border: 1px solid rgba(125, 249, 255, 0.16);
+}
+
+.result-title {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #7df9ff;
+}
+
+.result-card ol {
+  margin: 0;
+  padding-left: 18px;
+  color: #fefefe;
+}
+
+.track-panel {
+  margin-top: 24px;
+}
+
+.track-labels {
+  display: flex;
+  justify-content: space-between;
+  color: #92a4dd;
+  font-size: 0.86rem;
+  margin-bottom: 16px;
+}
+
+.track-surface {
+  display: grid;
+  gap: 16px;
+}
+
+.lane {
+  position: relative;
+  padding: 18px 0 10px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.car {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  transform: translateX(-50%);
+  width: 96px;
+  height: 44px;
+  border-radius: 18px 30px 18px 18px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  transition: left 0.12s linear, box-shadow 0.2s ease;
+}
+
+.car::before,
+.car::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #101730;
+}
+
+.car::before {
+  left: 16px;
+}
+
+.car::after {
+  right: 16px;
+}
+
+.car.racing {
+  animation: pulseGlow 0.8s infinite alternate;
+}
+
+.car.finished {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 12px 32px rgba(255, 255, 255, 0.18);
+}
+
+.driver {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #050816;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.meter {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7df9ff, #ff74d8);
+}
+
+.lane-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: #cdd6f7;
+  font-size: 0.85rem;
+}
+
+@keyframes pulseGlow {
+  from {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  }
+  to {
+    box-shadow: 0 10px 24px rgba(125, 249, 255, 0.2);
+  }
+}

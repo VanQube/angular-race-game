@@ -1,0 +1,28 @@
+<section class="leaderboard-panel">
+  <div class="leaderboard-card">
+    @if (raceFinished() && leaderboard().length) {
+      <div class="leaderboard-header">
+        <div>
+          <h2>Leaderboard</h2>
+          <p>The latest race results are ready to review.</p>
+        </div>
+        <button class="ghost-btn" (click)="closeLeaderboard()">Hide results</button>
+      </div>
+
+      <ol class="leaderboard-list">
+        @for (entry of leaderboard(); track entry.id; let index = $index) {
+          <li>
+            <span class="place">{{ index + 1 }}</span>
+            <span class="entry-name">{{ entry.name }}</span>
+            <span class="entry-time">{{ entry.finishTimeMs }}ms</span>
+          </li>
+        }
+      </ol>
+    } @else {
+      <div class="empty-state">
+        <h2>Leaderboard</h2>
+        <p>No race results yet. Head to the race track to start one.</p>
+      </div>
+    }
+  </div>
+</section>
