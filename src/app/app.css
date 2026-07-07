@@ -99,12 +99,17 @@
   font-size: 0.9rem;
 }
 
-input[type='text'] {
+input[type='text'],
+select {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.06);
   color: white;
+}
+
+select {
+  appearance: none;
 }
 
 input[type='color'] {
@@ -155,6 +160,38 @@ button:disabled {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.selection-preview {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.preview-label {
+  font-size: 0.9rem;
+  color: #eef2ff;
+}
+
+.preview-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(125, 249, 255, 0.08);
+  border: 1px solid rgba(125, 249, 255, 0.2);
+}
+
+.preview-badge {
+  color: #7df9ff;
+  font-weight: 700;
+}
+
+.preview-copy {
+  color: #cdd6f7;
+  font-size: 0.9rem;
 }
 
 .track-labels {
