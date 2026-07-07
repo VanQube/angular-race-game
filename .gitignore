@@ -29,6 +29,14 @@ yarn-error.log
 !.vscode/mcp.json
 .history/*
 
+# AI assistant local files
+/AGENTS.md
+/.github/copilot-instructions.md
+/.claude/
+/.cursor/
+/.gemini/
+/.junie/
+
 # Miscellaneous
 /.angular/cache
 .sass-cache/
