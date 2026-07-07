@@ -1,8 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
+
+interface CarModel {
+  id: string;
+  name: string;
+  tag: string;
+  accent: string;
+}
 
 interface Car {
   id: number;
   name: string;
+  model: string;
   color: string;
   progress: number;
   finishTimeMs: number | null;
@@ -16,20 +24,35 @@ interface Car {
   styleUrl: './app.css'
 })
 export class App {
+  protected readonly availableCarModels = signal<CarModel[]>([
+    { id: 'Vanta', name: 'Vanta', tag: 'Stealth frame', accent: '#7df9ff' },
+    { id: 'Rift', name: 'Rift', tag: 'Quantum drift', accent: '#ff74d8' },
+    { id: 'Axiom', name: 'Axiom', tag: 'Neural chassis', accent: '#7b61ff' },
+    { id: 'Spectra', name: 'Spectra', tag: 'Lightwave shell', accent: '#ffd166' },
+    { id: 'Kestrel', name: 'Kestrel', tag: 'Skyline racer', accent: '#15f5b3' },
+    { id: 'Nox', name: 'Nox', tag: 'Shadow sprint', accent: '#ff5f7d' }
+  ]);
+
   protected readonly cars = signal<Car[]>([
-    { id: 1, name: 'Nova', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' },
-    { id: 2, name: 'Blaze', color: '#5fd2ff', progress: 0, finishTimeMs: null, status: 'ready' },
-    { id: 3, name: 'Volt', color: '#ffd166', progress: 0, finishTimeMs: null, status: 'ready' }
+    { id: 1, name: 'Nova', model: 'Vanta', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' },
+    { id: 2, name: 'Blaze', model: 'Kestrel', color: '#5fd2ff', progress: 0, finishTimeMs: null, status: 'ready' },
+    { id: 3, name: 'Volt', model: 'Spectra', color: '#ffd166', progress: 0, finishTimeMs: null, status: 'ready' }
   ]);
 
   protected readonly newCarName = signal('');
-  protected readonly newCarColor = signal('#7c4dff');
+  protected readonly newCarModel = signal<string>(this.availableCarModels()[0].id);
+  protected readonly newCarColor = signal(this.availableCarModels()[0].accent);
+  protected readonly selectedCarModel = computed(() =>
+    this.availableCarModels().find((model) => model.id === this.newCarModel()) ?? this.availableCarModels()[0]
+  );
   protected readonly raceInProgress = signal(false);
   protected readonly raceFinished = signal(false);
   protected readonly leaderboard = signal<Car[]>([]);
 
   protected addCar(): void {
     const name = this.newCarName().trim();
+    const selectedModel = this.selectedCarModel();
+
     if (!name) {
       return;
     }
@@ -39,6 +62,7 @@ export class App {
       {
         id: Date.now() + Math.floor(Math.random() * 1000),
         name,
+        model: selectedModel.id,
         color: this.newCarColor(),
         progress: 0,
         finishTimeMs: null,
@@ -47,7 +71,43 @@ export class App {
     ]);
 
     this.newCarName.set('');
-    this.newCarColor.set('#7c4dff');
+    this.newCarModel.set(selectedModel.id);
+    this.newCarColor.set(selectedModel.accent);
+  }
+
+  protected onNameInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+
+    if (target) {
+      this.newCarName.set(target.value);
+    }
+  }
+
+  protected onColorInput(event: Event): void {
+    const target = event.target as HTMLInputElement | null;
+
+    if (target) {
+      this.newCarColor.set(target.value);
+    }
+  }
+
+  protected onModelSelect(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+
+    if (target) {
+      this.selectCarModel(target.value);
+    }
+  }
+
+  protected selectCarModel(modelId: string): void {
+    const model = this.availableCarModels().find((entry) => entry.id === modelId);
+
+    if (!model) {
+      return;
+    }
+
+    this.newCarModel.set(model.id);
+    this.newCarColor.set(model.accent);
   }
 
   protected startRace(): void {

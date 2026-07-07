@@ -22,9 +22,18 @@
         <input
           type="text"
           [value]="newCarName()"
-          (input)="newCarName.set($any($event.target).value)"
+          (input)="onNameInput($event)"
           placeholder="e.g. Aurora"
         />
+      </label>
+
+      <label class="field">
+        <span>Car model</span>
+        <select name="carModel" [value]="newCarModel()" (change)="onModelSelect($event)">
+          @for (model of availableCarModels(); track model.id) {
+            <option [value]="model.id">{{ model.name }} — {{ model.tag }}</option>
+          }
+        </select>
       </label>
 
       <label class="field">
@@ -32,9 +41,17 @@
         <input
           type="color"
           [value]="newCarColor()"
-          (input)="newCarColor.set($any($event.target).value)"
+          (input)="onColorInput($event)"
         />
       </label>
+
+      <div class="selection-preview">
+        <span class="preview-label">Selected model</span>
+        <div class="preview-card">
+          <span class="preview-badge">{{ selectedCarModel().name }}</span>
+          <span class="preview-copy">{{ selectedCarModel().tag }}</span>
+        </div>
+      </div>
 
       <button class="primary-btn" (click)="addCar()" [disabled]="raceInProgress()">Add racer</button>
     </div>
@@ -68,7 +85,7 @@
               [class.racing]="car.status === 'racing'"
               [class.finished]="car.status === 'finished'"
             >
-              <span class="driver">{{ car.name }}</span>
+              <span class="driver">{{ car.name }} · {{ car.model }}</span>
             </div>
 
             <div class="meter">
@@ -76,7 +93,7 @@
             </div>
 
             <div class="lane-meta">
-              <span>{{ car.name }}</span>
+              <span>{{ car.name }} · {{ car.model }}</span>
               <span>{{ car.finishTimeMs ? car.finishTimeMs + 'ms' : car.status }}</span>
             </div>
           </div>
