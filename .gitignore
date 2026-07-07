@@ -21,13 +21,26 @@ yarn-error.log
 *.sublime-workspace
 
 # Visual Studio Code
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/mcp.json
 .history/*
+
+# Editor and workspace config
+/.editorconfig
+/.prettierrc
+/.windsurf/
+
+# AI assistant local files
+/AGENTS.md
+/.github/copilot-instructions.md
+/.claude/
+/.cursor/
+/.gemini/
+/.junie/
 
 # Miscellaneous
 /.angular/cache
