@@ -1,14 +1,15 @@
-import { Component, computed, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
 import { AuthService } from './auth.service';
 
 @Component({
   selector: 'app-auth-view',
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './auth-view.html',
   styleUrl: './auth-view.css'
 })
 export class AuthView {
+  private readonly auth = inject(AuthService);
+
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly displayName = signal('');
@@ -22,8 +23,6 @@ export class AuthView {
   protected readonly toggleText = computed(() =>
     this.mode() === 'login' ? 'Need an account? Register' : 'Already registered? Sign in'
   );
-
-  constructor(private readonly auth: AuthService) {}
 
   protected toggleMode(): void {
     this.mode.set(this.mode() === 'login' ? 'register' : 'login');

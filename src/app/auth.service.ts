@@ -10,20 +10,27 @@ export interface AuthUser {
 
 const AUTH_TOKEN_KEY = 'race-game-auth-token';
 
-@Service({ providedIn: 'root' })
+@Service()
 export class AuthService {
   private readonly tokenSource = signal<string | null>(this.getSavedToken());
   private readonly userSource = signal<AuthUser | null>(null);
   private readonly errorSource = signal<string | null>(null);
   private readonly successSource = signal<string | null>(null);
 
+  private readonly readyPromise: Promise<void>;
+
   readonly user = this.userSource.asReadonly();
+  readonly token = this.tokenSource.asReadonly();
   readonly isAuthenticated = computed(() => Boolean(this.userSource()));
   readonly authError = this.errorSource.asReadonly();
   readonly authSuccess = this.successSource.asReadonly();
 
   constructor() {
-    void this.initialize();
+    this.readyPromise = this.initialize();
+  }
+
+  ready(): Promise<void> {
+    return this.readyPromise;
   }
 
   private getSavedToken(): string | null {

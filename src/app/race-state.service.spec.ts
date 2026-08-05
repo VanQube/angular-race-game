@@ -1,49 +1,94 @@
 import { TestBed } from '@angular/core/testing';
-import { fakeAsync, tick } from '@angular/core/testing';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RaceStateService } from './race-state.service';
+import { AuthService } from './auth.service';
+
+function mockRaceDb() {
+  return {
+    addRacer: vi.fn().mockResolvedValue('racer-id'),
+    createRace: vi.fn().mockResolvedValue('race-id'),
+    addResult: vi.fn().mockResolvedValue(undefined),
+    getCarModels: vi.fn().mockResolvedValue([]),
+    getRaceSummaries: vi.fn().mockResolvedValue([]),
+    getRace: vi.fn().mockResolvedValue(undefined)
+  };
+}
 
 describe('RaceStateService', () => {
-  let service: RaceStateService;
+  describe('when authenticated', () => {
+    let service: RaceStateService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(RaceStateService);
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'performance'] });
+      vi.spyOn(Math, 'random').mockReturnValue(0);
 
-    (service as any).raceDb = {
-      addRacer: jasmine.createSpy().and.resolveTo('racer-id'),
-      createRace: jasmine.createSpy().and.resolveTo('race-id'),
-      addResult: jasmine.createSpy().and.resolveTo(undefined),
-      getCarModels: jasmine.createSpy().and.resolveTo([]),
-      getRaceSummaries: jasmine.createSpy().and.resolveTo([]),
-      getRace: jasmine.createSpy().and.resolveTo(null)
-    };
+      TestBed.configureTestingModule({});
 
-    (service as any).carsSource.set([
-      { id: 1, name: 'Nova', model: 'Vanta', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' },
-      { id: 2, name: 'Blaze', model: 'Kestrel', color: '#5fd2ff', progress: 0, finishTimeMs: null, status: 'ready' }
-    ]);
-  });
+      const auth = TestBed.inject(AuthService);
+      (auth as any).userSource.set({ id: 'user-1', email: 'racer@example.com', displayName: 'Racer', createdAt: '2024-01-01' });
 
-  it('should pause and resume the race without losing progress', fakeAsync(() => {
-    let completed = false;
-    const runPromise = service.startRace().then(() => {
-      completed = true;
+      service = TestBed.inject(RaceStateService);
+      (service as any).raceDb = mockRaceDb();
+
+      (service as any).carsSource.set([
+        { id: 1, name: 'Nova', model: 'Vanta', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' },
+        { id: 2, name: 'Blaze', model: 'Kestrel', color: '#5fd2ff', progress: 0, finishTimeMs: null, status: 'ready' }
+      ]);
     });
 
-    tick(20);
-    service.pauseRace();
-    expect(service.racePaused()).toBeTrue();
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
 
-    tick(200);
-    const progressBeforeResume = service.cars()[0].progress;
+    it('should pause and resume the race without losing progress', async () => {
+      let completed = false;
+      const runPromise = service.startRace().then(() => {
+        completed = true;
+      });
 
-    service.resumeRace();
-    expect(service.racePaused()).toBeFalse();
+      await vi.advanceTimersByTimeAsync(20);
+      service.pauseRace();
+      expect(service.racePaused()).toBe(true);
 
-    tick(3000);
-    expect(completed).toBeTrue();
-    expect(service.cars()[0].progress).toBeGreaterThan(progressBeforeResume);
+      await vi.advanceTimersByTimeAsync(200);
+      const progressBeforeResume = service.cars()[0].progress;
 
-    runPromise.then();
-  }));
+      service.resumeRace();
+      expect(service.racePaused()).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(completed).toBe(true);
+      expect(service.cars()[0].progress).toBeGreaterThan(progressBeforeResume);
+
+      await runPromise;
+    });
+  });
+
+  describe('when not authenticated', () => {
+    let service: RaceStateService;
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({});
+      service = TestBed.inject(RaceStateService);
+      (service as any).raceDb = mockRaceDb();
+
+      (service as any).carsSource.set([
+        { id: 1, name: 'Nova', model: 'Vanta', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' }
+      ]);
+    });
+
+    it('does not start a race', async () => {
+      await service.startRace();
+
+      expect(service.raceInProgress()).toBe(false);
+    });
+
+    it('does not add a car', async () => {
+      service.setNewCarName('Nova');
+      await service.addCar();
+
+      expect(service.cars()).toHaveLength(1);
+    });
+  });
 });
