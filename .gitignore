@@ -7,7 +7,7 @@
 /bazel-out
 
 # Node
-/node_modules
+node_modules/
 npm-debug.log
 yarn-error.log
 
@@ -55,3 +55,24 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Playwright artifacts
+test-results/
+playwright-traces/
+.playwright/
+
+# Playwright local cache and videos
+**/playwright/.cache
+**/playwright/videos
+
+# NPM cache
+/.npm-cache
+
+# VS Code temporary files created during test runs
+.vscode-test/
+
+# Temporary trace extraction
+/tmp/playwright_trace_extracted_*
+
+# Ignore local prompt files
+.github/prompts/

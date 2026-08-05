@@ -20,6 +20,29 @@ npm start
 
 Then open http://localhost:4200/ in your browser.
 
+## Local MongoDB setup
+
+1. Install and start MongoDB locally on port 27017.
+2. In a separate terminal, start the local API server:
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
+3. Keep the Angular app and the API server running together.
+
+## Playwright E2E tests
+
+Install Playwright browsers and run tests:
+
+```bash
+npm install
+npm run e2e:install
+npm run test:e2e
+```
+
 ## Build
 
 ```bash

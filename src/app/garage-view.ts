@@ -27,7 +27,7 @@ export class GarageView {
   }
 
   protected addCar(): void {
-    this.raceState.addCar();
+    void this.raceState.addCar();
   }
 
   protected onNameInput(event: Event): void {

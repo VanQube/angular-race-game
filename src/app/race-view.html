@@ -6,6 +6,12 @@
       <button class="primary-btn" (click)="startRace()" [disabled]="raceInProgress() || cars().length === 0">
         Start race
       </button>
+      @if (raceInProgress() && !racePaused()) {
+        <button class="ghost-btn" (click)="pauseRace()">Pause race</button>
+      }
+      @if (raceInProgress() && racePaused()) {
+        <button class="ghost-btn" (click)="resumeRace()">Resume race</button>
+      }
       <button class="ghost-btn" (click)="resetRace()">Reset track</button>
     </div>
   </div>
