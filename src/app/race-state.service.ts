@@ -1,5 +1,6 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { RaceDbService } from './data/race-db';
+import { AuthService } from './auth.service';
 
 export interface CarModel {
   id: string;
@@ -21,21 +22,19 @@ export interface Car {
 
 @Injectable({ providedIn: 'root' })
 export class RaceStateService {
-  private readonly raceDb = new RaceDbService();
+  private readonly raceDb = inject(RaceDbService);
+  private readonly auth = inject(AuthService);
   private currentRaceId: string | null = null;
 
   protected readonly availableCarModelsSource = signal<CarModel[]>([]);
 
-  protected readonly carsSource = signal<Car[]>([
-    { id: 1, name: 'Nova', model: 'Vanta', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' },
-    { id: 2, name: 'Blaze', model: 'Kestrel', color: '#5fd2ff', progress: 0, finishTimeMs: null, status: 'ready' },
-    { id: 3, name: 'Volt', model: 'Spectra', color: '#ffd166', progress: 0, finishTimeMs: null, status: 'ready' }
-  ]);
+  protected readonly carsSource = signal<Car[]>([]);
 
   protected readonly newCarNameSource = signal('');
   protected readonly newCarModelSource = signal<string>('Vanta');
   protected readonly newCarColorSource = signal('#7df9ff');
   protected readonly raceInProgressSource = signal(false);
+  protected readonly racePausedSource = signal(false);
   protected readonly raceFinishedSource = signal(false);
   protected readonly leaderboardSource = signal<Car[]>([]);
 
@@ -45,6 +44,7 @@ export class RaceStateService {
   readonly newCarModel = this.newCarModelSource.asReadonly();
   readonly newCarColor = this.newCarColorSource.asReadonly();
   readonly raceInProgress = this.raceInProgressSource.asReadonly();
+  readonly racePaused = this.racePausedSource.asReadonly();
   readonly raceFinished = this.raceFinishedSource.asReadonly();
   readonly leaderboard = this.leaderboardSource.asReadonly();
 
@@ -53,14 +53,20 @@ export class RaceStateService {
   );
 
   constructor() {
-    void this.bootstrapFromMongo();
+    effect(() => {
+      if (this.auth.isAuthenticated()) {
+        void this.bootstrapFromMongo();
+      } else {
+        this.resetLocalState();
+      }
+    });
   }
 
   async addCar(): Promise<void> {
     const name = this.newCarName().trim();
     const selectedModel = this.selectedCarModel();
 
-    if (!name) {
+    if (!this.auth.isAuthenticated() || !name) {
       return;
     }
 
@@ -113,13 +119,14 @@ export class RaceStateService {
   }
 
   async startRace(): Promise<void> {
-    if (this.raceInProgress() || this.cars().length === 0) {
+    if (!this.auth.isAuthenticated() || this.raceInProgress() || this.cars().length === 0) {
       return;
     }
 
     await this.ensureRaceSession();
 
     this.raceInProgressSource.set(true);
+    this.racePausedSource.set(false);
     this.raceFinishedSource.set(false);
     this.leaderboardSource.set([]);
 
@@ -134,10 +141,16 @@ export class RaceStateService {
 
     const promises = racers.map((car) => new Promise<void>((resolve) => {
       const duration = 1800 + Math.random() * 1600;
-      const startTime = performance.now();
+      let elapsed = 0;
+      let lastTick = performance.now();
 
       const tick = () => {
-        const elapsed = performance.now() - startTime;
+        const now = performance.now();
+        if (!this.racePausedSource()) {
+          elapsed += now - lastTick;
+        }
+        lastTick = now;
+
         const progress = Math.min(100, Math.round((elapsed / duration) * 100));
 
         this.updateCar(car.id, {
@@ -183,13 +196,41 @@ export class RaceStateService {
 
   resetRace(): void {
     this.raceInProgressSource.set(false);
+    this.racePausedSource.set(false);
     this.raceFinishedSource.set(false);
     this.leaderboardSource.set([]);
     this.carsSource.update((current) => current.map((car) => ({ ...car, progress: 0, finishTimeMs: null, status: 'ready' as const })));
   }
 
+  pauseRace(): void {
+    if (!this.raceInProgressSource()) {
+      return;
+    }
+
+    this.racePausedSource.set(true);
+  }
+
+  resumeRace(): void {
+    if (!this.raceInProgressSource()) {
+      return;
+    }
+
+    this.racePausedSource.set(false);
+  }
+
   closeLeaderboard(): void {
     this.raceFinishedSource.set(false);
+  }
+
+  private resetLocalState(): void {
+    this.currentRaceId = null;
+    this.availableCarModelsSource.set([]);
+    this.carsSource.set([]);
+    this.newCarNameSource.set('');
+    this.raceInProgressSource.set(false);
+    this.racePausedSource.set(false);
+    this.raceFinishedSource.set(false);
+    this.leaderboardSource.set([]);
   }
 
   private async bootstrapFromMongo(): Promise<void> {
@@ -198,57 +239,47 @@ export class RaceStateService {
       this.availableCarModelsSource.set(models.map((model) => ({ ...model })));
 
       const summaries = await this.raceDb.getRaceSummaries();
-      if (summaries.length > 0) {
-        this.currentRaceId = summaries[0].id;
-        const race = await this.raceDb.getRace(this.currentRaceId);
-        if (race) {
-          this.carsSource.set(race.racers.map((racer, index) => ({
-            id: index + 1,
-            name: racer.driverName,
-            model: racer.carModelId,
-            color: racer.color,
-            progress: racer.progress,
-            finishTimeMs: racer.finishTimeMs,
-            status: racer.status,
-            dbRacerId: racer.id
-          })));
+      if (summaries.length === 0) {
+        return;
+      }
 
-          // If there are persisted results, populate the leaderboard from them
-          if (race.results && race.results.length > 0) {
-            const ranked = [...race.results].sort((a, b) => a.position - b.position).map((res) => {
-              const racer = res.racerId ? race.racers.find((r) => r.id === res.racerId) : undefined;
+      this.currentRaceId = summaries[0].id;
+      const race = await this.raceDb.getRace(this.currentRaceId);
+      if (!race) {
+        return;
+      }
 
-              if (racer) {
-                return {
-                  id: Date.now() + Math.floor(Math.random() * 1000),
-                  name: racer.driverName,
-                  model: racer.carModelId,
-                  color: racer.color,
-                  progress: 100,
-                  finishTimeMs: (res as any).finishTimeMs ?? (res as any).time ?? 0,
-                  status: 'finished' as const,
-                  dbRacerId: racer.id
-                };
-              }
+      this.carsSource.set(race.racers.map((racer, index) => ({
+        id: index + 1,
+        name: racer.driverName,
+        model: racer.carModelId,
+        color: racer.color,
+        progress: racer.progress,
+        finishTimeMs: racer.finishTimeMs,
+        status: racer.status,
+        dbRacerId: racer.id
+      })));
 
-              // fallback when result doesn't include racerId (legacy or test-seeded data)
-              return {
-                id: Date.now() + Math.floor(Math.random() * 1000),
-                name: (res as any).name ?? `Racer ${res.id}`,
-                model: race.racers[0]?.carModelId ?? 'Vanta',
-                color: race.racers[0]?.color ?? '#7df9ff',
-                progress: 100,
-                finishTimeMs: (res as any).finishTimeMs ?? (res as any).time ?? 0,
-                status: 'finished' as const
-              };
-            });
+      if (race.results.length > 0) {
+        const ranked = [...race.results]
+          .sort((first, second) => first.position - second.position)
+          .map((result) => {
+            const racer = race.racers.find((entry) => entry.id === result.racerId);
 
-            if (ranked.length > 0) {
-              this.leaderboardSource.set(ranked);
-              this.raceFinishedSource.set(true);
-            }
-          }
-        }
+            return {
+              id: Date.now() + Math.floor(Math.random() * 1000),
+              name: racer?.driverName ?? 'Unknown racer',
+              model: racer?.carModelId ?? '',
+              color: racer?.color ?? '#7df9ff',
+              progress: 100,
+              finishTimeMs: result.finishTimeMs,
+              status: 'finished' as const,
+              dbRacerId: racer?.id
+            };
+          });
+
+        this.leaderboardSource.set(ranked);
+        this.raceFinishedSource.set(true);
       }
     } catch (error) {
       console.error('Unable to sync race state with MongoDB.', error);

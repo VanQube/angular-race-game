@@ -133,7 +133,15 @@ app.get('/api/protected', authenticateRequest, async (req, res) => {
   });
 });
 
-app.get('/api/car-models', async (_req, res) => {
+async function findOwnedRace(db, raceId, ownerId) {
+  const race = await db.collection('races').findOne({ _id: new ObjectId(raceId) });
+  if (!race || race.ownerId !== ownerId) {
+    return null;
+  }
+  return race;
+}
+
+app.get('/api/car-models', authenticateRequest, async (_req, res) => {
   try {
     const db = await connect();
     const collection = db.collection('carModels');
@@ -151,10 +159,10 @@ app.get('/api/car-models', async (_req, res) => {
   }
 });
 
-app.get('/api/races', async (_req, res) => {
+app.get('/api/races', authenticateRequest, async (req, res) => {
   try {
     const db = await connect();
-    const races = await db.collection('races').find({}).sort({ createdAt: -1 }).toArray();
+    const races = await db.collection('races').find({ ownerId: req.auth.userId }).sort({ createdAt: -1 }).toArray();
     const summaries = races.map((race) => ({
       id: race._id?.toString?.() ?? race.id,
       name: race.name,
@@ -169,11 +177,12 @@ app.get('/api/races', async (_req, res) => {
   }
 });
 
-app.post('/api/races', async (req, res) => {
+app.post('/api/races', authenticateRequest, async (req, res) => {
   try {
     const db = await connect();
     const race = {
       ...req.body,
+      ownerId: req.auth.userId,
       createdAt: new Date().toISOString(),
       racers: [],
       results: []
@@ -186,36 +195,46 @@ app.post('/api/races', async (req, res) => {
   }
 });
 
-app.post('/api/races/:raceId/racers', async (req, res) => {
+app.post('/api/races/:raceId/racers', authenticateRequest, async (req, res) => {
   try {
     const db = await connect();
-    const raceId = req.params.raceId;
+    const race = await findOwnedRace(db, req.params.raceId, req.auth.userId);
+    if (!race) {
+      res.status(404).json({ message: 'Race not found' });
+      return;
+    }
+
     const racer = { ...req.body, id: `racer-${Date.now()}` };
 
-    await db.collection('races').updateOne({ _id: new ObjectId(raceId) }, { $push: { racers: racer } });
+    await db.collection('races').updateOne({ _id: race._id }, { $push: { racers: racer } });
     res.status(201).json(racer);
   } catch (error) {
     res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
-app.post('/api/races/:raceId/results', async (req, res) => {
+app.post('/api/races/:raceId/results', authenticateRequest, async (req, res) => {
   try {
     const db = await connect();
-    const raceId = req.params.raceId;
+    const race = await findOwnedRace(db, req.params.raceId, req.auth.userId);
+    if (!race) {
+      res.status(404).json({ message: 'Race not found' });
+      return;
+    }
+
     const result = { ...req.body, id: `result-${Date.now()}` };
 
-    await db.collection('races').updateOne({ _id: new ObjectId(raceId) }, { $push: { results: result } });
+    await db.collection('races').updateOne({ _id: race._id }, { $push: { results: result } });
     res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 
-app.get('/api/races/:raceId', async (req, res) => {
+app.get('/api/races/:raceId', authenticateRequest, async (req, res) => {
   try {
     const db = await connect();
-    const race = await db.collection('races').findOne({ _id: new ObjectId(req.params.raceId) });
+    const race = await findOwnedRace(db, req.params.raceId, req.auth.userId);
     if (!race) {
       res.status(404).json({ message: 'Race not found' });
       return;
@@ -234,7 +253,7 @@ app.get('/api/races/:raceId', async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
     console.log(`Mongo-backed race API listening on http://127.0.0.1:${port}`);

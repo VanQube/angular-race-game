@@ -1,11 +1,22 @@
+import { Service, inject } from '@angular/core';
+import { AuthService } from '../../auth.service';
 import { MONGO_CONFIG } from './mongo.config';
 import type { CarModelRecord, RaceRecord, RaceResultRecord, RaceSummary, RacerRecord } from './race-db.models';
 
+@Service()
 export class RaceDbService {
   private readonly baseUrl = MONGO_CONFIG.baseUrl;
+  private readonly auth = inject(AuthService);
+
+  private get authHeaders(): Record<string, string> {
+    const token = this.auth.token();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
 
   async getCarModels(): Promise<CarModelRecord[]> {
-    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.carModels}`);
+    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.carModels}`, {
+      headers: { ...this.authHeaders }
+    });
 
     if (!response.ok) {
       throw new Error('Unable to load car models from MongoDB API.');
@@ -15,7 +26,9 @@ export class RaceDbService {
   }
 
   async getRaceSummaries(): Promise<RaceSummary[]> {
-    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}`);
+    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}`, {
+      headers: { ...this.authHeaders }
+    });
 
     if (!response.ok) {
       throw new Error('Unable to load race summaries from MongoDB API.');
@@ -27,7 +40,7 @@ export class RaceDbService {
   async createRace(input: Pick<RaceRecord, 'name' | 'status'>): Promise<string> {
     const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders },
       body: JSON.stringify(input)
     });
 
@@ -42,7 +55,7 @@ export class RaceDbService {
   async addRacer(raceId: string, input: Omit<RacerRecord, 'id'>): Promise<string> {
     const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}/${raceId}/racers`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders },
       body: JSON.stringify(input)
     });
 
@@ -57,7 +70,7 @@ export class RaceDbService {
   async addResult(raceId: string, racerId: string, input: Omit<RaceResultRecord, 'id' | 'racerId'>): Promise<string> {
     const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}/${raceId}/results`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders },
       body: JSON.stringify({ ...input, racerId })
     });
 
@@ -70,7 +83,9 @@ export class RaceDbService {
   }
 
   async getRace(raceId: string): Promise<RaceRecord | undefined> {
-    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}/${raceId}`);
+    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}/${raceId}`, {
+      headers: { ...this.authHeaders }
+    });
 
     if (!response.ok) {
       if (response.status === 404) {

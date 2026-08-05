@@ -12,18 +12,18 @@
   <form (submit)="submit(); $event.preventDefault()">
     <label>
       Email
-      <input type="email" value={{ email() }} (input)="onEmailInput($event)" autocomplete="username" />
+      <input type="email" [value]="email()" (input)="onEmailInput($event)" autocomplete="username" />
     </label>
 
     <label>
       Password
-      <input type="password" value={{ password() }} (input)="onPasswordInput($event)" autocomplete="current-password" />
+      <input type="password" [value]="password()" (input)="onPasswordInput($event)" autocomplete="current-password" />
     </label>
 
     @if (mode() === 'register') {
       <label>
         Display name
-        <input type="text" value={{ displayName() }} (input)="onDisplayNameInput($event)" autocomplete="name" />
+        <input type="text" [value]="displayName()" (input)="onDisplayNameInput($event)" autocomplete="name" />
       </label>
     }
 
