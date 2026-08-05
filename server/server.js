@@ -1,10 +1,35 @@
 import express from 'express';
 import cors from 'cors';
+import { fileURLToPath } from 'url';
 import { MongoClient, ObjectId } from 'mongodb';
+import {
+  USER_COLLECTION_NAME,
+  validateRegisterPayload,
+  validateLoginPayload,
+  createUserDocument,
+  formatPublicUser,
+  verifyPassword,
+  createAuthToken,
+  verifyAuthToken
+} from './auth.model.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+export function authenticateRequest(req, res, next) {
+  const authorization = req.headers.authorization ?? '';
+  const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
+  const payload = verifyAuthToken(token);
+
+  if (!payload?.userId) {
+    res.status(401).json({ message: 'unauthorized' });
+    return;
+  }
+
+  req.auth = payload;
+  next();
+}
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017';
 const dbName = process.env.MONGO_DB || 'race-game';
@@ -25,6 +50,88 @@ async function connect() {
   }
   return client.db(dbName);
 }
+
+app.post('/api/register', async (req, res) => {
+  try {
+    const validation = validateRegisterPayload(req.body);
+    if (!validation.valid) {
+      res.status(400).json({ errors: validation.errors });
+      return;
+    }
+
+    const db = await connect();
+    const usersCollection = db.collection(USER_COLLECTION_NAME);
+    const existingUser = await usersCollection.findOne({ email: validation.data.email });
+
+    if (existingUser) {
+      res.status(409).json({ errors: ['email is already registered'] });
+      return;
+    }
+
+    const userDocument = createUserDocument(validation.data);
+    const insertion = await usersCollection.insertOne(userDocument);
+    const createdUser = { ...userDocument, _id: insertion.insertedId };
+
+    res.status(201).json({ user: formatPublicUser(createdUser) });
+  } catch (error) {
+    res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const validation = validateLoginPayload(req.body);
+    if (!validation.valid) {
+      res.status(400).json({ errors: validation.errors });
+      return;
+    }
+
+    const db = await connect();
+    const usersCollection = db.collection(USER_COLLECTION_NAME);
+    const existingUser = await usersCollection.findOne({ email: validation.data.email });
+
+    if (!existingUser || !verifyPassword(existingUser.passwordHash, validation.data.password)) {
+      res.status(401).json({ errors: ['invalid email or password'] });
+      return;
+    }
+
+    const token = createAuthToken({ userId: existingUser._id?.toString?.(), email: existingUser.email });
+    res.status(200).json({ token, user: formatPublicUser(existingUser) });
+  } catch (error) {
+    res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.get('/api/me', authenticateRequest, async (req, res) => {
+  try {
+    const db = await connect();
+    const usersCollection = db.collection(USER_COLLECTION_NAME);
+    const user = await usersCollection.findOne({ _id: new ObjectId(req.auth.userId) });
+
+    if (!user) {
+      res.status(404).json({ message: 'user not found' });
+      return;
+    }
+
+    res.status(200).json({ user: formatPublicUser(user) });
+  } catch (error) {
+    res.status(500).json({ message: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+app.get('/api/protected', authenticateRequest, async (req, res) => {
+  res.status(200).json({
+    message: 'access granted',
+    authenticatedUser: {
+      userId: req.auth.userId,
+      email: req.auth.email
+    },
+    data: {
+      secret: 'only visible to authenticated users',
+      timestamp: new Date().toISOString()
+    }
+  });
+});
 
 app.get('/api/car-models', async (_req, res) => {
   try {
@@ -128,6 +235,10 @@ app.get('/api/races/:raceId', async (req, res) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Mongo-backed race API listening on http://127.0.0.1:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Mongo-backed race API listening on http://127.0.0.1:${port}`);
+  });
+}
+
+export default app;
