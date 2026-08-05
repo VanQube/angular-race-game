@@ -1,0 +1,373 @@
+{
+  "info": {
+    "name": "Neon Speedway API",
+    "description": "Postman collection for the Neon Speedway race game API. The local API server listens on port 3001. Includes routes for car models, races, racers, and results with sample request/response bodies.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0",
+    "_postman_id": "98a6b948-bcd2-4bb0-9f2d-f0c45baf3621"
+  },
+  "variable": [
+    {
+      "key": "server_url",
+      "value": "http://127.0.0.1:3001",
+      "type": "string"
+    },
+    {
+      "key": "raceId",
+      "value": "64a7f8c90d4bba5f0a123456",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Car Models",
+      "item": [
+        {
+          "name": "Get Car Models",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server_url}}/api/car-models",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "car-models"
+              ]
+            },
+            "description": "Returns available car models. If the database is empty, the server seeds the default car model list."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{server_url}}/api/car-models",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "car-models"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": \"Vanta\",\n    \"name\": \"Vanta\",\n    \"tag\": \"Stealth frame\",\n    \"accent\": \"#7df9ff\"\n  },\n  {\n    \"id\": \"Rift\",\n    \"name\": \"Rift\",\n    \"tag\": \"Quantum drift\",\n    \"accent\": \"#ff74d8\"\n  },\n  {\n    \"id\": \"Axiom\",\n    \"name\": \"Axiom\",\n    \"tag\": \"Neural chassis\",\n    \"accent\": \"#7b61ff\"\n  }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Races",
+      "item": [
+        {
+          "name": "List Races",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server_url}}/api/races",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races"
+              ]
+            },
+            "description": "Returns a list of saved races with summary data sorted by newest first."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{server_url}}/api/races",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": \"64a7f8c90d4bba5f0a123456\",\n    \"name\": \"Sunset Sprint\",\n    \"status\": \"pending\",\n    \"createdAt\": \"2026-08-05T15:20:00.000Z\",\n    \"racerCount\": 3,\n    \"resultCount\": 0\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Create Race",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sunset Sprint\",\n  \"status\": \"pending\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server_url}}/api/races",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races"
+              ]
+            },
+            "description": "Creates a new race record and returns the saved race with generated metadata."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sunset Sprint\",\n  \"status\": \"pending\"\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"name\": \"Sunset Sprint\",\n  \"status\": \"pending\",\n  \"createdAt\": \"2026-08-05T15:20:00.000Z\",\n  \"racers\": [],\n  \"results\": [],\n  \"id\": \"64a7f8c90d4bba5f0a123456\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Race Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{server_url}}/api/races/{{raceId}}",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races",
+                "{{raceId}}"
+              ]
+            },
+            "description": "Returns full race details, including racers and results. Use the raceId from the create or list response."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"id\": \"64a7f8c90d4bba5f0a123456\",\n  \"name\": \"Sunset Sprint\",\n  \"status\": \"pending\",\n  \"createdAt\": \"2026-08-05T15:20:00.000Z\",\n  \"racers\": [\n    {\n      \"id\": \"racer-1712345678901\",\n      \"name\": \"Blaze\",\n      \"carModel\": \"Vanta\",\n      \"color\": \"#ff5f7d\"\n    }\n  ],\n  \"results\": []\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"message\": \"Race not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Racer to Race",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Blaze\",\n  \"carModel\": \"Vanta\",\n  \"color\": \"#ff5f7d\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server_url}}/api/races/{{raceId}}/racers",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races",
+                "{{raceId}}",
+                "racers"
+              ]
+            },
+            "description": "Adds a racer to the specified race and returns the created racer object."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Blaze\",\n  \"carModel\": \"Vanta\",\n  \"color\": \"#ff5f7d\"\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/racers",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "racers"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": \"racer-1712345678901\",\n  \"name\": \"Blaze\",\n  \"carModel\": \"Vanta\",\n  \"color\": \"#ff5f7d\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Result to Race",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"racerId\": \"racer-1712345678901\",\n  \"position\": 1,\n  \"time\": 12430\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server_url}}/api/races/{{raceId}}/results",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races",
+                "{{raceId}}",
+                "results"
+              ]
+            },
+            "description": "Adds a race result entry to the specified race and returns the created result record."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"racerId\": \"racer-1712345678901\",\n  \"position\": 1,\n  \"time\": 12430\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/results",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "results"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": \"result-1712345678902\",\n  \"racerId\": \"racer-1712345678901\",\n  \"position\": 1,\n  \"time\": 12430\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
