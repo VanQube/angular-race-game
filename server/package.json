@@ -1,0 +1,14 @@
+{
+  "name": "race-game-mongo-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.0",
+    "express": "^4.19.0",
+    "mongodb": "^6.0.0"
+  }
+}
