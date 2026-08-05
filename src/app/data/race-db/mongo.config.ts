@@ -3,5 +3,11 @@ export const MONGO_CONFIG = {
   endpoints: {
     races: '/api/races',
     carModels: '/api/car-models'
+  },
+  auth: {
+    login: '/api/login',
+    register: '/api/register',
+    me: '/api/me',
+    protected: '/api/protected'
   }
 };

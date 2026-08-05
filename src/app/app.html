@@ -12,12 +12,22 @@
       <div class="pill">Cars: {{ cars().length }}</div>
       <div class="pill">State: {{ raceInProgress() ? 'Racing' : raceFinished() ? 'Finished' : 'Ready' }}</div>
     </div>
+
+    <div class="auth-banner">
+      @if (auth.isAuthenticated()) {
+        <span>Welcome, {{ auth.user()?.displayName }}</span>
+        <button class="ghost-btn" (click)="auth.logout()">Sign out</button>
+      } @else {
+        <a routerLink="/auth" class="ghost-btn">Sign in</a>
+      }
+    </div>
   </header>
 
   <nav class="tab-nav" aria-label="Primary">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Race</a>
     <a routerLink="/garage" routerLinkActive="active">Garage</a>
     <a routerLink="/leaderboard" routerLinkActive="active">Leaderboard</a>
+    <a routerLink="/auth" routerLinkActive="active">Auth</a>
   </nav>
 
   <main class="view-shell">

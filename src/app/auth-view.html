@@ -1,0 +1,45 @@
+<section class="panel auth-panel">
+  <h2>@if (mode() === 'login') { Sign in } @else { Register }</h2>
+
+  @if (authError()) {
+    <div class="alert alert-error">{{ authError() }}</div>
+  }
+
+  @if (authSuccess()) {
+    <div class="alert alert-success">{{ authSuccess() }}</div>
+  }
+
+  <form (submit)="submit(); $event.preventDefault()">
+    <label>
+      Email
+      <input type="email" value={{ email() }} (input)="onEmailInput($event)" autocomplete="username" />
+    </label>
+
+    <label>
+      Password
+      <input type="password" value={{ password() }} (input)="onPasswordInput($event)" autocomplete="current-password" />
+    </label>
+
+    @if (mode() === 'register') {
+      <label>
+        Display name
+        <input type="text" value={{ displayName() }} (input)="onDisplayNameInput($event)" autocomplete="name" />
+      </label>
+    }
+
+    <div class="actions">
+      <button class="primary-btn" type="submit">{{ submitLabel() }}</button>
+      <button class="ghost-btn" type="button" (click)="toggleMode()">{{ toggleText() }}</button>
+      @if (isAuthenticated()) {
+        <button class="ghost-btn" type="button" (click)="fetchProtectedData()">Load protected data</button>
+      }
+    </div>
+  </form>
+
+  @if (protectedData()) {
+    <section class="panel auth-panel">
+      <h3>Protected response</h3>
+      <pre>{{ protectedData() }}</pre>
+    </section>
+  }
+</section>
