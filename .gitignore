@@ -73,3 +73,6 @@ playwright-traces/
 
 # Temporary trace extraction
 /tmp/playwright_trace_extracted_*
+
+# Ignore local prompt files
+.github/prompts/
