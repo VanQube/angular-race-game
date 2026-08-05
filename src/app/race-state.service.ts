@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { RaceDbService } from './data/race-db';
 
 export interface CarModel {
   id: string;
@@ -15,18 +16,15 @@ export interface Car {
   progress: number;
   finishTimeMs: number | null;
   status: 'ready' | 'racing' | 'finished';
+  dbRacerId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class RaceStateService {
-  protected readonly availableCarModelsSource = signal<CarModel[]>([
-    { id: 'Vanta', name: 'Vanta', tag: 'Stealth frame', accent: '#7df9ff' },
-    { id: 'Rift', name: 'Rift', tag: 'Quantum drift', accent: '#ff74d8' },
-    { id: 'Axiom', name: 'Axiom', tag: 'Neural chassis', accent: '#7b61ff' },
-    { id: 'Spectra', name: 'Spectra', tag: 'Lightwave shell', accent: '#ffd166' },
-    { id: 'Kestrel', name: 'Kestrel', tag: 'Skyline racer', accent: '#15f5b3' },
-    { id: 'Nox', name: 'Nox', tag: 'Shadow sprint', accent: '#ff5f7d' }
-  ]);
+  private readonly raceDb = new RaceDbService();
+  private currentRaceId: string | null = null;
+
+  protected readonly availableCarModelsSource = signal<CarModel[]>([]);
 
   protected readonly carsSource = signal<Car[]>([
     { id: 1, name: 'Nova', model: 'Vanta', color: '#ff5f7d', progress: 0, finishTimeMs: null, status: 'ready' },
@@ -54,13 +52,27 @@ export class RaceStateService {
     this.availableCarModels().find((model) => model.id === this.newCarModel()) ?? this.availableCarModels()[0]
   );
 
-  addCar(): void {
+  constructor() {
+    void this.bootstrapFromMongo();
+  }
+
+  async addCar(): Promise<void> {
     const name = this.newCarName().trim();
     const selectedModel = this.selectedCarModel();
 
     if (!name) {
       return;
     }
+
+    const raceId = await this.ensureRaceSession();
+    const dbRacerId = await this.raceDb.addRacer(raceId, {
+      driverName: name,
+      carModelId: selectedModel.id,
+      color: this.newCarColor(),
+      progress: 0,
+      finishTimeMs: null,
+      status: 'ready'
+    });
 
     this.carsSource.update((current) => [
       ...current,
@@ -71,7 +83,8 @@ export class RaceStateService {
         color: this.newCarColor(),
         progress: 0,
         finishTimeMs: null,
-        status: 'ready' as const
+        status: 'ready' as const,
+        dbRacerId
       }
     ]);
 
@@ -99,10 +112,12 @@ export class RaceStateService {
     this.newCarColorSource.set(model.accent);
   }
 
-  startRace(): void {
+  async startRace(): Promise<void> {
     if (this.raceInProgress() || this.cars().length === 0) {
       return;
     }
+
+    await this.ensureRaceSession();
 
     this.raceInProgressSource.set(true);
     this.raceFinishedSource.set(false);
@@ -141,15 +156,29 @@ export class RaceStateService {
       tick();
     }));
 
-    void Promise.all(promises).then(() => {
-      const ranked = [...this.cars()].sort(
-        (first, second) => (first.finishTimeMs ?? Number.POSITIVE_INFINITY) - (second.finishTimeMs ?? Number.POSITIVE_INFINITY)
-      );
+    await Promise.all(promises);
 
-      this.leaderboardSource.set(ranked);
-      this.raceInProgressSource.set(false);
-      this.raceFinishedSource.set(true);
-    });
+    const ranked = [...this.cars()].sort(
+      (first, second) => (first.finishTimeMs ?? Number.POSITIVE_INFINITY) - (second.finishTimeMs ?? Number.POSITIVE_INFINITY)
+    );
+
+    if (this.currentRaceId) {
+      await Promise.all(ranked.map((car, index) => {
+        if (!car.dbRacerId) {
+          return Promise.resolve();
+        }
+
+        return this.raceDb.addResult(this.currentRaceId!, car.dbRacerId, {
+          position: index + 1,
+          finishTimeMs: car.finishTimeMs ?? 0,
+          notes: 'Recorded from local race flow'
+        });
+      }));
+    }
+
+    this.leaderboardSource.set(ranked);
+    this.raceInProgressSource.set(false);
+    this.raceFinishedSource.set(true);
   }
 
   resetRace(): void {
@@ -161,6 +190,82 @@ export class RaceStateService {
 
   closeLeaderboard(): void {
     this.raceFinishedSource.set(false);
+  }
+
+  private async bootstrapFromMongo(): Promise<void> {
+    try {
+      const models = await this.raceDb.getCarModels();
+      this.availableCarModelsSource.set(models.map((model) => ({ ...model })));
+
+      const summaries = await this.raceDb.getRaceSummaries();
+      if (summaries.length > 0) {
+        this.currentRaceId = summaries[0].id;
+        const race = await this.raceDb.getRace(this.currentRaceId);
+        if (race) {
+          this.carsSource.set(race.racers.map((racer, index) => ({
+            id: index + 1,
+            name: racer.driverName,
+            model: racer.carModelId,
+            color: racer.color,
+            progress: racer.progress,
+            finishTimeMs: racer.finishTimeMs,
+            status: racer.status,
+            dbRacerId: racer.id
+          })));
+
+          // If there are persisted results, populate the leaderboard from them
+          if (race.results && race.results.length > 0) {
+            const ranked = [...race.results].sort((a, b) => a.position - b.position).map((res) => {
+              const racer = res.racerId ? race.racers.find((r) => r.id === res.racerId) : undefined;
+
+              if (racer) {
+                return {
+                  id: Date.now() + Math.floor(Math.random() * 1000),
+                  name: racer.driverName,
+                  model: racer.carModelId,
+                  color: racer.color,
+                  progress: 100,
+                  finishTimeMs: (res as any).finishTimeMs ?? (res as any).time ?? 0,
+                  status: 'finished' as const,
+                  dbRacerId: racer.id
+                };
+              }
+
+              // fallback when result doesn't include racerId (legacy or test-seeded data)
+              return {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                name: (res as any).name ?? `Racer ${res.id}`,
+                model: race.racers[0]?.carModelId ?? 'Vanta',
+                color: race.racers[0]?.color ?? '#7df9ff',
+                progress: 100,
+                finishTimeMs: (res as any).finishTimeMs ?? (res as any).time ?? 0,
+                status: 'finished' as const
+              };
+            });
+
+            if (ranked.length > 0) {
+              this.leaderboardSource.set(ranked);
+              this.raceFinishedSource.set(true);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Unable to sync race state with MongoDB.', error);
+    }
+  }
+
+  private async ensureRaceSession(): Promise<string> {
+    if (this.currentRaceId) {
+      return this.currentRaceId;
+    }
+
+    this.currentRaceId = await this.raceDb.createRace({
+      name: 'Night Sprint',
+      status: 'scheduled'
+    });
+
+    return this.currentRaceId;
   }
 
   private updateCar(id: number, patch: Partial<Car>): void {
