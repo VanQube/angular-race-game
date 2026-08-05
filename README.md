@@ -31,6 +31,8 @@ npm install
 npm run dev
 ```
 
+The API server listens on `http://127.0.0.1:3001` by default, and the API routes are under `/api/*`.
+
 3. Keep the Angular app and the API server running together.
 
 ## Playwright E2E tests
