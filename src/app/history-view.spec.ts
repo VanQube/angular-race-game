@@ -73,7 +73,7 @@ describe('HistoryView', () => {
 
     expect((component as any).raceDb.rematchRace).toHaveBeenCalledWith('race-1');
     expect(compiled.querySelector('[role="status"].status-banner--success')?.textContent).toContain(
-      'Night Sprint (Rematch) is ready in the Garage.'
+      'Night Sprint (Rematch) is saved. Reload the app to race it in the Garage.'
     );
   });
 
@@ -86,5 +86,6 @@ describe('HistoryView', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('[role="alert"]')?.textContent).toContain('Unable to load race history');
+    expect(compiled.textContent).not.toContain('No races yet');
   });
 });

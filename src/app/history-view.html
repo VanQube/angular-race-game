@@ -14,7 +14,7 @@
 
     @if (loading()) {
       <p class="status-banner" role="status">Loading race history…</p>
-    } @else if (!hasRaces()) {
+    } @else if (!error() && !hasRaces()) {
       <div class="empty-state">
         <h3>No races yet</h3>
         <p>Head to the race track to run your first race.</p>

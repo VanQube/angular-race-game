@@ -208,4 +208,8 @@ export class AuthService {
     this.clearAuth();
     this.successSource.set('Signed out successfully');
   }
+
+  setFavoriteCarModelIds(favoriteCarModelIds: string[]): void {
+    this.userSource.update((user) => (user ? { ...user, favoriteCarModelIds } : user));
+  }
 }

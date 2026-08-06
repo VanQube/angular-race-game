@@ -11,7 +11,7 @@
 
     @if (loading()) {
       <p class="status-banner" role="status">Loading records…</p>
-    } @else if (rows().length === 0) {
+    } @else if (!error() && rows().length === 0) {
       <div class="empty-state">
         <h3>No records yet</h3>
         <p>Finish a race to set your first personal best.</p>

@@ -56,5 +56,6 @@ describe('RecordsView', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('[role="alert"]')?.textContent).toContain('Unable to load personal bests');
+    expect(compiled.textContent).not.toContain('No records yet');
   });
 });

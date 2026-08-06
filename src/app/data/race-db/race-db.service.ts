@@ -1,7 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { AuthService } from '../../auth.service';
 import { MONGO_CONFIG } from './mongo.config';
-import type { CarModelRecord, PersonalBestRecord, RaceRecord, RematchRaceRecord, RaceResultRecord, RaceSummary, RacerRecord } from './race-db.models';
+import type { CarModelRecord, PersonalBestRecord, RaceRecord, RaceResultRecord, RaceSummary, RacerRecord } from './race-db.models';
 
 @Service()
 export class RaceDbService {
@@ -127,7 +127,7 @@ export class RaceDbService {
     return response.json() as Promise<{ favorited: boolean; favoriteCarModelIds: string[] }>;
   }
 
-  async rematchRace(raceId: string): Promise<RematchRaceRecord> {
+  async rematchRace(raceId: string): Promise<RaceRecord> {
     const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}/${raceId}/rematch`, {
       method: 'POST',
       headers: { ...this.authHeaders }
@@ -137,6 +137,6 @@ export class RaceDbService {
       throw new Error('Unable to create a rematch in MongoDB.');
     }
 
-    return response.json() as Promise<RematchRaceRecord>;
+    return response.json() as Promise<RaceRecord>;
   }
 }

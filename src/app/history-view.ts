@@ -69,7 +69,7 @@ export class HistoryView implements OnInit {
     try {
       const rematch = await this.raceDb.rematchRace(raceId);
       this.summaries.set(await this.raceDb.getRaceSummaries());
-      this.success.set(`${rematch.name} is ready in the Garage.`);
+      this.success.set(`${rematch.name} is saved. Reload the app to race it in the Garage.`);
     } catch {
       this.error.set('Unable to create a rematch. Try again shortly.');
     } finally {

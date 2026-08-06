@@ -1,4 +1,4 @@
-export type RaceStatus = 'scheduled' | 'running' | 'finished' | 'cancelled';
+export type RaceStatus = 'scheduled' | 'running' | 'finished' | 'cancelled' | 'pending';
 export type RacerStatus = 'ready' | 'racing' | 'finished';
 
 export interface CarModelRecord {
@@ -48,13 +48,4 @@ export interface PersonalBestRecord {
   carModelId: string;
   finishTimeMs: number;
   achievedAt: string;
-}
-
-export interface RematchRaceRecord {
-  id: string;
-  name: string;
-  status: string;
-  createdAt: string;
-  racers: RacerRecord[];
-  results: RaceResultRecord[];
 }
