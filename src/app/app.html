@@ -9,8 +9,8 @@
     </div>
 
     <div class="hero-badges">
-      <div class="pill">Cars: {{ cars().length }}</div>
-      <div class="pill">State: {{ raceInProgress() ? 'Racing' : raceFinished() ? 'Finished' : 'Ready' }}</div>
+      <div class="pill">Cars: {{ raceState.cars().length }}</div>
+      <div class="pill">State: {{ raceStatusLabel() }}</div>
     </div>
 
     <div class="auth-banner">

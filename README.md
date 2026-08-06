@@ -9,6 +9,12 @@ Neon Speedway is a small Angular 22 demo app where you can create custom racers,
 - See finish times and a ranked leaderboard at the end of each race
 - Built with Angular, signals, and modern component-based UI patterns
 
+## Engineering practices
+
+Coding standards and conventions for this repo (TypeScript, Angular, accessibility, testing,
+and API/backend patterns) are documented in [ENGINEERING_PRACTICES.md](ENGINEERING_PRACTICES.md).
+Read it before making non-trivial changes, and use it as the checklist in code review.
+
 ## Development
 
 Install dependencies and start the app locally:
@@ -31,7 +37,7 @@ npm install
 npm run dev
 ```
 
-The API server listens on `http://127.0.0.1:3001` by default, and the API routes are under `/api/*`.
+The API server listens on `http://127.0.0.1:3001` by default, and the API routes are under `/api/*`. All error responses follow the format described in [API_ERROR_HANDLING.md](API_ERROR_HANDLING.md).
 
 3. Keep the Angular app and the API server running together.
 

@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, signal } from '@angular/core';
+import { Service, computed, effect, inject, signal } from '@angular/core';
 import { RaceDbService } from './data/race-db';
 import { AuthService } from './auth.service';
 
@@ -20,11 +20,12 @@ export interface Car {
   dbRacerId?: string;
 }
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class RaceStateService {
   private readonly raceDb = inject(RaceDbService);
   private readonly auth = inject(AuthService);
   private currentRaceId: string | null = null;
+  private localIdCounter = 0;
 
   protected readonly availableCarModelsSource = signal<CarModel[]>([]);
 
@@ -83,7 +84,7 @@ export class RaceStateService {
     this.carsSource.update((current) => [
       ...current,
       {
-        id: Date.now() + Math.floor(Math.random() * 1000),
+        id: this.nextLocalId(),
         name,
         model: selectedModel.id,
         color: this.newCarColor(),
@@ -175,13 +176,14 @@ export class RaceStateService {
       (first, second) => (first.finishTimeMs ?? Number.POSITIVE_INFINITY) - (second.finishTimeMs ?? Number.POSITIVE_INFINITY)
     );
 
-    if (this.currentRaceId) {
+    const raceId = this.currentRaceId;
+    if (raceId) {
       await Promise.all(ranked.map((car, index) => {
         if (!car.dbRacerId) {
           return Promise.resolve();
         }
 
-        return this.raceDb.addResult(this.currentRaceId!, car.dbRacerId, {
+        return this.raceDb.addResult(raceId, car.dbRacerId, {
           position: index + 1,
           finishTimeMs: car.finishTimeMs ?? 0,
           notes: 'Recorded from local race flow'
@@ -267,7 +269,7 @@ export class RaceStateService {
             const racer = race.racers.find((entry) => entry.id === result.racerId);
 
             return {
-              id: Date.now() + Math.floor(Math.random() * 1000),
+              id: this.nextLocalId(),
               name: racer?.driverName ?? 'Unknown racer',
               model: racer?.carModelId ?? '',
               color: racer?.color ?? '#7df9ff',
@@ -301,5 +303,10 @@ export class RaceStateService {
 
   private updateCar(id: number, patch: Partial<Car>): void {
     this.carsSource.update((current) => current.map((car) => (car.id === id ? { ...car, ...patch } : car)));
+  }
+
+  private nextLocalId(): number {
+    this.localIdCounter += 1;
+    return this.localIdCounter;
   }
 }

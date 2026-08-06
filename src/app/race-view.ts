@@ -1,5 +1,5 @@
-import { Component, type Signal } from '@angular/core';
-import { type Car, RaceStateService } from './race-state.service';
+import { Component, computed, inject } from '@angular/core';
+import { RaceStateService } from './race-state.service';
 
 @Component({
   selector: 'app-race-view',
@@ -8,19 +8,15 @@ import { type Car, RaceStateService } from './race-state.service';
   styleUrl: './race-view.css'
 })
 export class RaceView {
-  protected readonly cars: Signal<Car[]>;
-  protected readonly raceInProgress: Signal<boolean>;
-  protected readonly raceFinished: Signal<boolean>;
-  protected readonly racePaused: Signal<boolean>;
-  protected readonly leaderboard: Signal<Car[]>;
+  protected readonly raceState = inject(RaceStateService);
 
-  constructor(protected readonly raceState: RaceStateService) {
-    this.cars = this.raceState.cars;
-    this.raceInProgress = this.raceState.raceInProgress;
-    this.raceFinished = this.raceState.raceFinished;
-    this.racePaused = this.raceState.racePaused;
-    this.leaderboard = this.raceState.leaderboard;
-  }
+  protected readonly statusMessage = computed(() => {
+    if (this.raceState.raceInProgress()) {
+      return 'The racers are blazing down the lane.';
+    }
+
+    return this.raceState.raceFinished() ? 'A new record has been set.' : 'The grid is ready for launch.';
+  });
 
   protected startRace(): void {
     void this.raceState.startRace();

@@ -3,13 +3,13 @@
     <h2>Race controls</h2>
     <p>Launch the field and let the fastest machine claim the podium.</p>
     <div class="actions">
-      <button class="primary-btn" (click)="startRace()" [disabled]="raceInProgress() || cars().length === 0">
+      <button class="primary-btn" (click)="startRace()" [disabled]="raceState.raceInProgress() || raceState.cars().length === 0">
         Start race
       </button>
-      @if (raceInProgress() && !racePaused()) {
+      @if (raceState.raceInProgress() && !raceState.racePaused()) {
         <button class="ghost-btn" (click)="pauseRace()">Pause race</button>
       }
-      @if (raceInProgress() && racePaused()) {
+      @if (raceState.raceInProgress() && raceState.racePaused()) {
         <button class="ghost-btn" (click)="resumeRace()">Resume race</button>
       }
       <button class="ghost-btn" (click)="resetRace()">Reset track</button>
@@ -18,12 +18,12 @@
 
   <div class="panel highlight-panel">
     <h2>Live status</h2>
-    <p>{{ raceInProgress() ? 'The racers are blazing down the lane.' : raceFinished() ? 'A new record has been set.' : 'The grid is ready for launch.' }}</p>
-    @if (raceFinished() && leaderboard().length) {
+    <p>{{ statusMessage() }}</p>
+    @if (raceState.raceFinished() && raceState.leaderboard().length) {
       <div class="result-card">
         <span class="result-title">Latest podium</span>
         <ol>
-          @for (entry of leaderboard().slice(0, 3); track entry.id; let index = $index) {
+          @for (entry of raceState.leaderboard().slice(0, 3); track entry.id; let index = $index) {
             <li>{{ index + 1 }}. {{ entry.name }} — {{ entry.finishTimeMs }}ms</li>
           }
         </ol>
@@ -40,7 +40,7 @@
     </div>
 
     <div class="track-surface">
-      @for (car of cars(); track car.id) {
+      @for (car of raceState.cars(); track car.id) {
         <div class="lane">
           <div
             class="car"

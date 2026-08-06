@@ -10,6 +10,26 @@ export interface AuthUser {
 
 const AUTH_TOKEN_KEY = 'race-game-auth-token';
 
+interface ApiErrorPayload {
+  error?: {
+    message?: string;
+    details?: string[];
+  };
+}
+
+interface LoginResponsePayload {
+  token?: string;
+  user?: AuthUser;
+}
+
+interface RegisterResponsePayload {
+  user?: AuthUser;
+}
+
+interface MeResponsePayload {
+  user?: AuthUser;
+}
+
 @Service()
 export class AuthService {
   private readonly tokenSource = signal<string | null>(this.getSavedToken());
@@ -80,12 +100,22 @@ export class AuthService {
     this.userSource.set(null);
   }
 
-  private async parseResponseBody(response: Response): Promise<any> {
+  private async parseResponseBody(response: Response): Promise<unknown> {
     try {
       return await response.json();
     } catch {
       return null;
     }
+  }
+
+  private extractErrorMessage(payload: unknown, fallback: string): string {
+    const errorPayload = payload as ApiErrorPayload | null;
+    const details = errorPayload?.error?.details;
+    if (Array.isArray(details) && details.length > 0) {
+      return details.join(', ');
+    }
+
+    return errorPayload?.error?.message ?? fallback;
   }
 
   async login(email: string, password: string): Promise<AuthUser> {
@@ -98,9 +128,9 @@ export class AuthService {
       body: JSON.stringify({ email, password })
     });
 
-    const payload = await this.parseResponseBody(response);
+    const payload = (await this.parseResponseBody(response)) as LoginResponsePayload | null;
     if (!response.ok) {
-      this.errorSource.set(payload?.errors?.join(', ') ?? payload?.message ?? 'Unable to sign in');
+      this.errorSource.set(this.extractErrorMessage(payload, 'Unable to sign in'));
       throw new Error(this.errorSource() ?? 'Login failed');
     }
 
@@ -128,14 +158,14 @@ export class AuthService {
       body: JSON.stringify({ email, password, displayName })
     });
 
-    const payload = await this.parseResponseBody(response);
+    const payload = (await this.parseResponseBody(response)) as RegisterResponsePayload | null;
     if (!response.ok) {
-      this.errorSource.set(payload?.errors?.join(', ') ?? payload?.message ?? 'Unable to register');
+      this.errorSource.set(this.extractErrorMessage(payload, 'Unable to register'));
       throw new Error(this.errorSource() ?? 'Registration failed');
     }
 
     this.successSource.set('Registration successful. Please sign in.');
-    return payload?.user;
+    return payload?.user as AuthUser;
   }
 
   async fetchMe(): Promise<AuthUser> {
@@ -143,12 +173,12 @@ export class AuthService {
       headers: { ...this.authHeaders }
     });
 
-    const payload = await this.parseResponseBody(response);
+    const payload = (await this.parseResponseBody(response)) as MeResponsePayload | null;
     if (!response.ok || !payload?.user) {
       throw new Error('Unable to fetch profile');
     }
 
-    return payload.user as AuthUser;
+    return payload.user;
   }
 
   async getProtectedData(): Promise<unknown> {
@@ -158,7 +188,7 @@ export class AuthService {
 
     if (!response.ok) {
       const payload = await this.parseResponseBody(response);
-      throw new Error(payload?.message ?? 'Protected access failed');
+      throw new Error(this.extractErrorMessage(payload, 'Protected access failed'));
     }
 
     return await response.json();

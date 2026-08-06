@@ -1,6 +1,6 @@
 <section class="leaderboard-panel">
   <div class="leaderboard-card">
-    @if (raceFinished() && leaderboard().length) {
+    @if (raceState.raceFinished() && raceState.leaderboard().length) {
       <div class="leaderboard-header">
         <div>
           <h2>Leaderboard</h2>
@@ -10,7 +10,7 @@
       </div>
 
       <ol class="leaderboard-list">
-        @for (entry of leaderboard(); track entry.id; let index = $index) {
+        @for (entry of raceState.leaderboard(); track entry.id; let index = $index) {
           <li>
             <span class="place">{{ index + 1 }}</span>
             <span class="entry-name">{{ entry.name }}</span>
