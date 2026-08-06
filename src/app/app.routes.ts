@@ -18,6 +18,11 @@ export const routes: Routes = [
     loadComponent: () => import('./leaderboard-view').then((m) => m.LeaderboardView),
     canActivate: [authGuard]
   },
+  {
+    path: 'showroom',
+    loadComponent: () => import('./showroom-view').then((m) => m.ShowroomView),
+    canActivate: [authGuard]
+  },
   { path: 'auth', component: AuthView },
   { path: '**', redirectTo: '' }
 ];
