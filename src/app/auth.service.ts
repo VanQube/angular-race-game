@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string;
   displayName: string;
   createdAt: string;
+  favoriteCarModelIds: string[];
 }
 
 const AUTH_TOKEN_KEY = 'race-game-auth-token';

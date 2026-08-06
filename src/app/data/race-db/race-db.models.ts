@@ -43,3 +43,18 @@ export interface RaceSummary {
   racerCount: number;
   resultCount: number;
 }
+
+export interface PersonalBestRecord {
+  carModelId: string;
+  finishTimeMs: number;
+  achievedAt: string;
+}
+
+export interface RematchRaceRecord {
+  id: string;
+  name: string;
+  status: string;
+  createdAt: string;
+  racers: RacerRecord[];
+  results: RaceResultRecord[];
+}
