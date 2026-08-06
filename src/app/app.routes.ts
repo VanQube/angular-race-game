@@ -23,6 +23,11 @@ export const routes: Routes = [
     loadComponent: () => import('./showroom-view').then((m) => m.ShowroomView),
     canActivate: [authGuard]
   },
+  {
+    path: 'records',
+    loadComponent: () => import('./records-view').then((m) => m.RecordsView),
+    canActivate: [authGuard]
+  },
   { path: 'auth', component: AuthView },
   { path: '**', redirectTo: '' }
 ];

@@ -1,0 +1,32 @@
+<section class="records-panel">
+  <div class="records-card">
+    <div class="records-header">
+      <h2>Records</h2>
+      <p>Your fastest lap for every chassis you've raced.</p>
+    </div>
+
+    @if (error()) {
+      <p class="status-banner status-banner--error" role="alert">{{ error() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="status-banner" role="status">Loading records…</p>
+    } @else if (rows().length === 0) {
+      <div class="empty-state">
+        <h3>No records yet</h3>
+        <p>Finish a race to set your first personal best.</p>
+      </div>
+    } @else {
+      <ol class="records-list">
+        @for (row of rows(); track row.best.carModelId) {
+          <li>
+            <span class="place">{{ $index + 1 }}</span>
+            <span class="entry-name">{{ row.model?.name ?? row.best.carModelId }}</span>
+            <span class="entry-date">{{ row.best.achievedAt | date: 'mediumDate' }}</span>
+            <span class="entry-time">{{ row.best.finishTimeMs }}ms</span>
+          </li>
+        }
+      </ol>
+    }
+  </div>
+</section>
