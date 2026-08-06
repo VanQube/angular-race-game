@@ -68,6 +68,9 @@ playwright-traces/
 # NPM cache
 /.npm-cache
 
+# Local-only k8s secrets (never commit real secret values)
+k8s/*.local
+
 # VS Code temporary files created during test runs
 .vscode-test/
 
