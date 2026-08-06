@@ -16,6 +16,17 @@
       "key": "raceId",
       "value": "64a7f8c90d4bba5f0a123456",
       "type": "string"
+    },
+    {
+      "key": "racerId",
+      "value": "racer-1712345678901",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token returned by POST /api/login. Required for all routes below except registration/login."
     }
   ],
   "item": [
@@ -59,6 +70,114 @@
               "status": "OK",
               "code": 200,
               "body": "[\n  {\n    \"id\": \"Vanta\",\n    \"name\": \"Vanta\",\n    \"tag\": \"Stealth frame\",\n    \"accent\": \"#7df9ff\"\n  },\n  {\n    \"id\": \"Rift\",\n    \"name\": \"Rift\",\n    \"tag\": \"Quantum drift\",\n    \"accent\": \"#ff74d8\"\n  },\n  {\n    \"id\": \"Axiom\",\n    \"name\": \"Axiom\",\n    \"tag\": \"Neural chassis\",\n    \"accent\": \"#7b61ff\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Toggle Favorite Car Model",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{server_url}}/api/car-models/Vanta/favorite",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "car-models",
+                "Vanta",
+                "favorite"
+              ]
+            },
+            "description": "Toggles a car model in and out of the caller's favorites. The first call on a given id favorites it (`favorited: true`); calling it again on the same id un-favorites it (`favorited: false`) — the same route handles both directions. Returns the caller's full updated favorites list. Fails with 404 if the car model id is not one of the seeded models."
+          },
+          "response": [
+            {
+              "name": "200 OK - favorited",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/car-models/Vanta/favorite",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "car-models",
+                    "Vanta",
+                    "favorite"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"carModelId\": \"Vanta\",\n  \"favorited\": true,\n  \"favoriteCarModelIds\": [\"Vanta\"]\n}"
+            },
+            {
+              "name": "200 OK - un-favorited (second call on the same id)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/car-models/Vanta/favorite",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "car-models",
+                    "Vanta",
+                    "favorite"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"carModelId\": \"Vanta\",\n  \"favorited\": false,\n  \"favoriteCarModelIds\": []\n}"
+            },
+            {
+              "name": "404 Not Found - unknown car model",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/car-models/Not-A-Real-Model/favorite",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "car-models",
+                    "Not-A-Real-Model",
+                    "favorite"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"car model not found\"\n  }\n}"
             }
           ]
         }
@@ -364,6 +483,304 @@
               "status": "Created",
               "code": 201,
               "body": "{\n  \"id\": \"result-1712345678902\",\n  \"racerId\": \"racer-1712345678901\",\n  \"position\": 1,\n  \"time\": 12430\n}"
+            }
+          ]
+        },
+        {
+          "name": "Finish Racer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"finishTimeMs\": 12430\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{server_url}}/api/races/{{raceId}}/racers/{{racerId}}/finish",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races",
+                "{{raceId}}",
+                "racers",
+                "{{racerId}}",
+                "finish"
+              ]
+            },
+            "description": "Marks a racer as finished with the given time, records a race result for it, and checks the time against the caller's personal best for that racer's car model (stored across races). Returns the updated racer, the new result, and whether a personal best was set. Fails with 400 for an invalid/non-positive `finishTimeMs`, 404 if the race or racer doesn't exist (or isn't owned by the caller), and 409 if the racer has already finished."
+          },
+          "response": [
+            {
+              "name": "201 Created - new personal best",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"finishTimeMs\": 12430\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/racers/{{racerId}}/finish",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "racers",
+                    "{{racerId}}",
+                    "finish"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"racer\": {\n    \"id\": \"racer-1712345678901\",\n    \"driverName\": \"Blaze\",\n    \"carModelId\": \"Vanta\",\n    \"color\": \"#ff5f7d\",\n    \"progress\": 100,\n    \"finishTimeMs\": 12430,\n    \"status\": \"finished\"\n  },\n  \"result\": {\n    \"id\": \"result-1712345678902\",\n    \"racerId\": \"racer-1712345678901\",\n    \"position\": 1,\n    \"finishTimeMs\": 12430\n  },\n  \"personalBest\": {\n    \"carModelId\": \"Vanta\",\n    \"finishTimeMs\": 12430,\n    \"isNewPersonalBest\": true\n  }\n}"
+            },
+            {
+              "name": "409 Conflict - already finished",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"finishTimeMs\": 12430\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/racers/{{racerId}}/finish",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "racers",
+                    "{{racerId}}",
+                    "finish"
+                  ]
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"racer has already finished this race\"\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request - invalid finishTimeMs",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"finishTimeMs\": -5\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/racers/{{racerId}}/finish",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "racers",
+                    "{{racerId}}",
+                    "finish"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"finish payload is invalid\",\n    \"details\": [\"finishTimeMs must be a positive number\"]\n  }\n}"
+            },
+            {
+              "name": "404 Not Found - racer not on this race",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"finishTimeMs\": 12430\n}"
+                },
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/racers/{{racerId}}/finish",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "racers",
+                    "{{racerId}}",
+                    "finish"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"racer not found on this race\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Rematch Race",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{server_url}}/api/races/{{raceId}}/rematch",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "races",
+                "{{raceId}}",
+                "rematch"
+              ]
+            },
+            "description": "Creates a new race by cloning the racers from an existing race owned by the caller, resetting each one to the starting line (progress 0, no finish time, status \"ready\"). Results are not copied, since they belong to the run being repeated. The new race is created with status \"pending\" and a `sourceRaceId` pointing back to the original. Fails with 400 if the source race has no racers, and 404 if the race doesn't exist or isn't owned by the caller."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/rematch",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "rematch"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"name\": \"Sunset Sprint (Rematch)\",\n  \"status\": \"pending\",\n  \"ownerId\": \"64a7f8c90d4bba5f0a999999\",\n  \"sourceRaceId\": \"64a7f8c90d4bba5f0a123456\",\n  \"createdAt\": \"2026-08-05T15:45:00.000Z\",\n  \"racers\": [\n    {\n      \"id\": \"racer-1712345678901\",\n      \"name\": \"Blaze\",\n      \"carModel\": \"Vanta\",\n      \"color\": \"#ff5f7d\",\n      \"progress\": 0,\n      \"finishTimeMs\": null,\n      \"status\": \"ready\"\n    }\n  ],\n  \"results\": [],\n  \"id\": \"64a7f8c90d4bba5f0a654321\"\n}"
+            },
+            {
+              "name": "400 Bad Request - no racers",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/rematch",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "rematch"
+                  ]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"race cannot be rematched\",\n    \"details\": [\"race has no racers to rematch\"]\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/races/{{raceId}}/rematch",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "races",
+                    "{{raceId}}",
+                    "rematch"
+                  ]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"race not found\"\n  }\n}"
             }
           ]
         }
