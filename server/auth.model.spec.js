@@ -4,6 +4,7 @@ import {
   verifyAuthToken,
   validateLoginPayload,
   validateRegisterPayload,
+  formatPublicUser,
   hashPassword,
   verifyPassword
 } from './auth.model.js';
@@ -70,5 +71,28 @@ describe('auth.model', () => {
     expect(payload).not.toBeNull();
     expect(payload.userId).toBe('123');
     expect(payload.email).toBe('test@example.com');
+  });
+
+  it('defaults favoriteCarModelIds to an empty array when the user has none', () => {
+    const publicUser = formatPublicUser({
+      _id: 'user-1',
+      email: 'racer@example.com',
+      displayName: 'Racer',
+      createdAt: '2024-01-01T00:00:00.000Z'
+    });
+
+    expect(publicUser.favoriteCarModelIds).toEqual([]);
+  });
+
+  it('passes through existing favoriteCarModelIds', () => {
+    const publicUser = formatPublicUser({
+      _id: 'user-1',
+      email: 'racer@example.com',
+      displayName: 'Racer',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      favoriteCarModelIds: ['Vanta', 'Rift']
+    });
+
+    expect(publicUser.favoriteCarModelIds).toEqual(['Vanta', 'Rift']);
   });
 });

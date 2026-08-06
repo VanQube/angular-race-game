@@ -180,7 +180,8 @@ export function formatPublicUser(user) {
     id: user._id?.toString?.() ?? user.id,
     email: user.email,
     displayName: user.displayName,
-    createdAt: user.createdAt
+    createdAt: user.createdAt,
+    favoriteCarModelIds: user.favoriteCarModelIds ?? []
   };
 }
 
