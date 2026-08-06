@@ -76,3 +76,6 @@ playwright-traces/
 
 # Ignore local prompt files
 .github/prompts/
+
+# Subagent-driven-development scratch workspace
+.superpowers/
