@@ -1,0 +1,35 @@
+<section class="showroom-panel">
+  <div class="showroom-header">
+    <h2>Showroom</h2>
+    <p>Every chassis in the fleet. Star your favorites to find them faster next time.</p>
+  </div>
+
+  @if (error()) {
+    <p class="status-banner status-banner--error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="status-banner" role="status">Loading car models…</p>
+  } @else {
+    <div class="showroom-grid">
+      @for (card of cards(); track card.model.id) {
+        <div class="showroom-card" [class.favorited]="card.favorited">
+          <div class="showroom-card__swatch" [style.background]="card.model.accent"></div>
+          <div class="showroom-card__body">
+            <strong>{{ card.model.name }}</strong>
+            <p>{{ card.model.tag }}</p>
+          </div>
+          <button
+            type="button"
+            class="favorite-btn"
+            [class.active]="card.favorited"
+            [attr.aria-pressed]="card.favorited"
+            [attr.aria-label]="card.favoriteLabel"
+            [disabled]="isPending(card.model.id)"
+            (click)="toggleFavorite(card.model.id)"
+          >★</button>
+        </div>
+      }
+    </div>
+  }
+</section>

@@ -19,6 +19,7 @@ import {
   PERSONAL_BEST_COLLECTION_NAME,
   canRacerFinish,
   findRacerInRace,
+  formatPersonalBest,
   markRacerFinished,
   nextRacePosition,
   resolvePersonalBest,
@@ -175,6 +176,21 @@ app.post(
     await usersCollection.updateOne({ _id: user._id }, { $set: { favoriteCarModelIds } });
 
     res.status(200).json({ carModelId, favorited, favoriteCarModelIds });
+  })
+);
+
+app.get(
+  '/api/personal-bests',
+  authenticateRequest,
+  asyncHandler(async (req, res) => {
+    const db = await connect();
+    const records = await db
+      .collection(PERSONAL_BEST_COLLECTION_NAME)
+      .find({ ownerId: req.auth.userId })
+      .sort({ finishTimeMs: 1 })
+      .toArray();
+
+    res.json(records.map(formatPersonalBest));
   })
 );
 

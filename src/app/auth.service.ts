@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string;
   displayName: string;
   createdAt: string;
+  favoriteCarModelIds: string[];
 }
 
 const AUTH_TOKEN_KEY = 'race-game-auth-token';
@@ -206,5 +207,9 @@ export class AuthService {
   logout(): void {
     this.clearAuth();
     this.successSource.set('Signed out successfully');
+  }
+
+  setFavoriteCarModelIds(favoriteCarModelIds: string[]): void {
+    this.userSource.update((user) => (user ? { ...user, favoriteCarModelIds } : user));
   }
 }

@@ -1,7 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { AuthService } from '../../auth.service';
 import { MONGO_CONFIG } from './mongo.config';
-import type { CarModelRecord, RaceRecord, RaceResultRecord, RaceSummary, RacerRecord } from './race-db.models';
+import type { CarModelRecord, PersonalBestRecord, RaceRecord, RaceResultRecord, RaceSummary, RacerRecord } from './race-db.models';
 
 @Service()
 export class RaceDbService {
@@ -100,5 +100,43 @@ export class RaceDbService {
   async getRacers(raceId: string): Promise<RacerRecord[]> {
     const race = await this.getRace(raceId);
     return race?.racers ?? [];
+  }
+
+  async getPersonalBests(): Promise<PersonalBestRecord[]> {
+    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.personalBests}`, {
+      headers: { ...this.authHeaders }
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to load personal bests from MongoDB API.');
+    }
+
+    return response.json() as Promise<PersonalBestRecord[]>;
+  }
+
+  async toggleFavoriteCarModel(carModelId: string): Promise<{ favorited: boolean; favoriteCarModelIds: string[] }> {
+    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.carModels}/${carModelId}/favorite`, {
+      method: 'POST',
+      headers: { ...this.authHeaders }
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to update favorite car models in MongoDB.');
+    }
+
+    return response.json() as Promise<{ favorited: boolean; favoriteCarModelIds: string[] }>;
+  }
+
+  async rematchRace(raceId: string): Promise<RaceRecord> {
+    const response = await fetch(`${this.baseUrl}${MONGO_CONFIG.endpoints.races}/${raceId}/rematch`, {
+      method: 'POST',
+      headers: { ...this.authHeaders }
+    });
+
+    if (!response.ok) {
+      throw new Error('Unable to create a rematch in MongoDB.');
+    }
+
+    return response.json() as Promise<RaceRecord>;
   }
 }

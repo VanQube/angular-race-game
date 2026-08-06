@@ -46,3 +46,11 @@ export function resolvePersonalBest({ existingBest, ownerId, carModelId, finishT
     record: { ownerId, carModelId, finishTimeMs, achievedAt: now.toISOString() }
   };
 }
+
+export function formatPersonalBest(record) {
+  return {
+    carModelId: record.carModelId,
+    finishTimeMs: record.finishTimeMs,
+    achievedAt: record.achievedAt
+  };
+}

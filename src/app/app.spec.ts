@@ -51,6 +51,9 @@ describe('App', () => {
     expect(compiled.textContent).toContain('Race');
     expect(compiled.textContent).toContain('Garage');
     expect(compiled.textContent).toContain('Leaderboard');
+    expect(compiled.textContent).toContain('Showroom');
+    expect(compiled.textContent).toContain('Records');
+    expect(compiled.textContent).toContain('History');
     expect(compiled.textContent).toContain('Race controls');
     expect(compiled.querySelector('button.primary-btn')?.textContent).toContain('Start race');
   });

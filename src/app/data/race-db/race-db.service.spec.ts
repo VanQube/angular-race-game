@@ -52,4 +52,47 @@ describe('RaceDbService', () => {
     expect(race?.results).toHaveLength(1);
     expect(race?.results[0].position).toBe(1);
   });
+
+  it('loads personal bests from the API', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ carModelId: 'Vanta', finishTimeMs: 1840, achievedAt: '2024-01-01T00:00:00.000Z' }]
+    } as Response);
+
+    const bests = await service.getPersonalBests();
+
+    expect(bests).toHaveLength(1);
+    expect(bests[0].carModelId).toBe('Vanta');
+  });
+
+  it('toggles a favorite car model via the API', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ favorited: true, favoriteCarModelIds: ['Vanta'] })
+    } as Response);
+
+    const result = await service.toggleFavoriteCarModel('Vanta');
+
+    expect(result.favorited).toBe(true);
+    expect(result.favoriteCarModelIds).toEqual(['Vanta']);
+  });
+
+  it('creates a rematch race via the API', async () => {
+    vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        id: 'race-2',
+        name: 'Night Sprint (Rematch)',
+        status: 'pending',
+        createdAt: '2024-01-02T00:00:00.000Z',
+        racers: [],
+        results: []
+      })
+    } as Response);
+
+    const rematch = await service.rematchRace('race-1');
+
+    expect(rematch.id).toBe('race-2');
+    expect(rematch.name).toBe('Night Sprint (Rematch)');
+  });
 });

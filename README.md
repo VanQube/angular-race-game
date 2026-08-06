@@ -7,6 +7,9 @@ Neon Speedway is a small Angular 22 demo app where you can create custom racers,
 - Create your own racers with custom names and colors
 - Start a race and watch progress update in real time
 - See finish times and a ranked leaderboard at the end of each race
+- Browse the Showroom and favorite your go-to car models
+- Track your personal-best lap times per car model in Records
+- Revisit past races and one-click rematch them from History
 - Built with Angular, signals, and modern component-based UI patterns
 
 ## Engineering practices

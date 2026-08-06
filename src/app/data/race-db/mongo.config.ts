@@ -2,7 +2,8 @@ export const MONGO_CONFIG = {
   baseUrl: 'http://127.0.0.1:3001',
   endpoints: {
     races: '/api/races',
-    carModels: '/api/car-models'
+    carModels: '/api/car-models',
+    personalBests: '/api/personal-bests'
   },
   auth: {
     login: '/api/login',

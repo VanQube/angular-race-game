@@ -18,6 +18,21 @@ export const routes: Routes = [
     loadComponent: () => import('./leaderboard-view').then((m) => m.LeaderboardView),
     canActivate: [authGuard]
   },
+  {
+    path: 'showroom',
+    loadComponent: () => import('./showroom-view').then((m) => m.ShowroomView),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'records',
+    loadComponent: () => import('./records-view').then((m) => m.RecordsView),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'history',
+    loadComponent: () => import('./history-view').then((m) => m.HistoryView),
+    canActivate: [authGuard]
+  },
   { path: 'auth', component: AuthView },
   { path: '**', redirectTo: '' }
 ];

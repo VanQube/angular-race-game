@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canRacerFinish,
   findRacerInRace,
+  formatPersonalBest,
   markRacerFinished,
   nextRacePosition,
   resolvePersonalBest,
@@ -130,6 +131,24 @@ describe('personal-best.model', () => {
 
       expect(result.isNewPersonalBest).toBe(false);
       expect(result.record).toBe(existingBest);
+    });
+  });
+
+  describe('formatPersonalBest', () => {
+    it('keeps only the public shape, stripping internal fields', () => {
+      const record = {
+        _id: 'mongo-id',
+        ownerId: 'user-1',
+        carModelId: 'Vanta',
+        finishTimeMs: 1840,
+        achievedAt: '2024-01-01T00:00:00.000Z'
+      };
+
+      expect(formatPersonalBest(record)).toEqual({
+        carModelId: 'Vanta',
+        finishTimeMs: 1840,
+        achievedAt: '2024-01-01T00:00:00.000Z'
+      });
     });
   });
 });
