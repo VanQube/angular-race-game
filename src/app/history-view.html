@@ -1,0 +1,58 @@
+<section class="history-panel">
+  <div class="history-card">
+    <div class="history-header">
+      <h2>History</h2>
+      <p>Every race you've run, with a one-click rematch.</p>
+    </div>
+
+    @if (error()) {
+      <p class="status-banner status-banner--error" role="alert">{{ error() }}</p>
+    }
+    @if (success()) {
+      <p class="status-banner status-banner--success" role="status">{{ success() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="status-banner" role="status">Loading race history…</p>
+    } @else if (!hasRaces()) {
+      <div class="empty-state">
+        <h3>No races yet</h3>
+        <p>Head to the race track to run your first race.</p>
+      </div>
+    } @else {
+      <ul class="history-list">
+        @for (summary of summaries(); track summary.id) {
+          <li class="history-row" [class.selected]="selectedRaceId() === summary.id">
+            <button type="button" class="history-row__select" (click)="selectRace(summary.id)">
+              <strong>{{ summary.name }}</strong>
+              <span>{{ summary.createdAt | date: 'medium' }} · {{ summary.racerCount }} racers · {{ summary.status }}</span>
+            </button>
+            <button
+              type="button"
+              class="ghost-btn rematch-btn"
+              [disabled]="rematching()"
+              (click)="rematch(summary.id)"
+            >Rematch</button>
+          </li>
+        }
+      </ul>
+
+      @if (selectedRaceId()) {
+        @if (detailLoading()) {
+          <p class="status-banner" role="status">Loading race details…</p>
+        } @else {
+          @if (selectedRace(); as race) {
+            <div class="race-detail">
+              <h3>{{ race.name }}</h3>
+              <ol class="race-detail__results">
+                @for (result of race.results; track result.id) {
+                  <li>#{{ result.position }} · {{ result.finishTimeMs }}ms</li>
+                }
+              </ol>
+            </div>
+          }
+        }
+      }
+    }
+  </div>
+</section>
