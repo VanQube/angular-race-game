@@ -48,7 +48,8 @@ select {
 
 input[type='text']:focus,
 select:focus {
-  outline: none;
+  outline: 2px solid #7df9ff;
+  outline-offset: 2px;
   border-color: rgba(125, 249, 255, 0.5);
   background: rgba(255, 255, 255, 0.1);
 }

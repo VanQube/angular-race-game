@@ -1,5 +1,5 @@
-import { Component, type Signal } from '@angular/core';
-import { type Car, RaceStateService } from './race-state.service';
+import { Component, inject } from '@angular/core';
+import { RaceStateService } from './race-state.service';
 
 @Component({
   selector: 'app-leaderboard-view',
@@ -8,13 +8,7 @@ import { type Car, RaceStateService } from './race-state.service';
   styleUrl: './leaderboard-view.css'
 })
 export class LeaderboardView {
-  protected readonly leaderboard: Signal<Car[]>;
-  protected readonly raceFinished: Signal<boolean>;
-
-  constructor(protected readonly raceState: RaceStateService) {
-    this.leaderboard = this.raceState.leaderboard;
-    this.raceFinished = this.raceState.raceFinished;
-  }
+  protected readonly raceState = inject(RaceStateService);
 
   protected closeLeaderboard(): void {
     this.raceState.closeLeaderboard();

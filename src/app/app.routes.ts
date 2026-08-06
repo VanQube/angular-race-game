@@ -1,14 +1,23 @@
 import { Routes } from '@angular/router';
-import { GarageView } from './garage-view';
-import { LeaderboardView } from './leaderboard-view';
-import { RaceView } from './race-view';
 import { AuthView } from './auth-view';
 import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: RaceView, canActivate: [authGuard] },
-  { path: 'garage', component: GarageView, canActivate: [authGuard] },
-  { path: 'leaderboard', component: LeaderboardView, canActivate: [authGuard] },
+  {
+    path: '',
+    loadComponent: () => import('./race-view').then((m) => m.RaceView),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'garage',
+    loadComponent: () => import('./garage-view').then((m) => m.GarageView),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'leaderboard',
+    loadComponent: () => import('./leaderboard-view').then((m) => m.LeaderboardView),
+    canActivate: [authGuard]
+  },
   { path: 'auth', component: AuthView },
   { path: '**', redirectTo: '' }
 ];

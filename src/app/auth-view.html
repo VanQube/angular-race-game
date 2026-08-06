@@ -2,29 +2,38 @@
   <h2>@if (mode() === 'login') { Sign in } @else { Register }</h2>
 
   @if (authError()) {
-    <div class="alert alert-error">{{ authError() }}</div>
+    <div class="alert alert-error" role="alert">{{ authError() }}</div>
   }
 
   @if (authSuccess()) {
-    <div class="alert alert-success">{{ authSuccess() }}</div>
+    <div class="alert alert-success" role="status">{{ authSuccess() }}</div>
   }
 
-  <form (submit)="submit(); $event.preventDefault()">
+  <form novalidate (submit)="submit(); $event.preventDefault()">
     <label>
       Email
-      <input type="email" [value]="email()" (input)="onEmailInput($event)" autocomplete="username" />
+      <input type="email" [formField]="authForm.email" autocomplete="username" />
     </label>
+    @if (authForm.email().touched() && authForm.email().invalid()) {
+      <p class="field-error" role="alert">{{ authForm.email().errors()[0].message }}</p>
+    }
 
     <label>
       Password
-      <input type="password" [value]="password()" (input)="onPasswordInput($event)" autocomplete="current-password" />
+      <input type="password" [formField]="authForm.password" autocomplete="current-password" />
     </label>
+    @if (authForm.password().touched() && authForm.password().invalid()) {
+      <p class="field-error" role="alert">{{ authForm.password().errors()[0].message }}</p>
+    }
 
     @if (mode() === 'register') {
       <label>
         Display name
-        <input type="text" [value]="displayName()" (input)="onDisplayNameInput($event)" autocomplete="name" />
+        <input type="text" [formField]="authForm.displayName" autocomplete="name" />
       </label>
+      @if (authForm.displayName().touched() && authForm.displayName().invalid()) {
+        <p class="field-error" role="alert">{{ authForm.displayName().errors()[0].message }}</p>
+      }
     }
 
     <div class="actions">

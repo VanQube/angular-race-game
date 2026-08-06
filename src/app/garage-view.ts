@@ -1,5 +1,5 @@
-import { Component, type Signal } from '@angular/core';
-import { type Car, type CarModel, RaceStateService } from './race-state.service';
+import { Component, inject } from '@angular/core';
+import { RaceStateService } from './race-state.service';
 
 @Component({
   selector: 'app-garage-view',
@@ -8,23 +8,7 @@ import { type Car, type CarModel, RaceStateService } from './race-state.service'
   styleUrl: './garage-view.css'
 })
 export class GarageView {
-  protected readonly availableCarModels: Signal<CarModel[]>;
-  protected readonly newCarName: Signal<string>;
-  protected readonly newCarModel: Signal<string>;
-  protected readonly newCarColor: Signal<string>;
-  protected readonly selectedCarModel: Signal<CarModel>;
-  protected readonly cars: Signal<Car[]>;
-  protected readonly raceInProgress: Signal<boolean>;
-
-  constructor(protected readonly raceState: RaceStateService) {
-    this.availableCarModels = this.raceState.availableCarModels;
-    this.newCarName = this.raceState.newCarName;
-    this.newCarModel = this.raceState.newCarModel;
-    this.newCarColor = this.raceState.newCarColor;
-    this.selectedCarModel = this.raceState.selectedCarModel;
-    this.cars = this.raceState.cars;
-    this.raceInProgress = this.raceState.raceInProgress;
-  }
+  protected readonly raceState = inject(RaceStateService);
 
   protected addCar(): void {
     void this.raceState.addCar();

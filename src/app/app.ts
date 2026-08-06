@@ -1,6 +1,6 @@
-import { Component, type Signal } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { type Car, RaceStateService } from './race-state.service';
+import { RaceStateService } from './race-state.service';
 import { AuthService } from './auth.service';
 
 @Component({
@@ -10,13 +10,14 @@ import { AuthService } from './auth.service';
   styleUrl: './app.css'
 })
 export class App {
-  protected readonly cars: Signal<Car[]>;
-  protected readonly raceInProgress: Signal<boolean>;
-  protected readonly raceFinished: Signal<boolean>;
+  protected readonly raceState = inject(RaceStateService);
+  protected readonly auth = inject(AuthService);
 
-  constructor(protected readonly raceState: RaceStateService, protected readonly auth: AuthService) {
-    this.cars = this.raceState.cars;
-    this.raceInProgress = this.raceState.raceInProgress;
-    this.raceFinished = this.raceState.raceFinished;
-  }
+  protected readonly raceStatusLabel = computed(() => {
+    if (this.raceState.raceInProgress()) {
+      return 'Racing';
+    }
+
+    return this.raceState.raceFinished() ? 'Finished' : 'Ready';
+  });
 }
